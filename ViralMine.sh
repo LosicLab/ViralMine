@@ -45,7 +45,7 @@ echo $"Done"
 ## 3. Remove short or unsupported contigs:
 module load python/3.6.2
 # Set -s to be whatever size seems reasonable for your contigs; previously 200 has worked well for viral genomes ~3k bp
-./inch_assem_filter.py -f ${Dir}/inch_assembly -s 200
+~/scripts/inch_assem_filter.py -f ${Dir}/inch_assembly -s 200
 #Output is inchworm.K25.L25.DS.filtered.fa
 
 ## 4. Consolidate similar contig clusters into single contigs by CD-hit (est)
