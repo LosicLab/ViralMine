@@ -13,7 +13,7 @@
 Dir="path/to/unmapped_reads.out/" #Path to the location of your alignment output files
 seq_type="paired" # Select "paired" or "single" end sequencing (to select how many fastqs to expect)
 Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
-viral_db="path/to/viral/blastn_db/viral.db" # Where blast database for viral reference sequences will be output
+viral_db="path/to/viral/blastn_db/viral.db" # Where blast database for viral reference sequences will be output (can be substituted with reference db included in git repo)
 sample_id="sample_name" # Name you want to give the sample (JobID)
 gt_virus=1 # 0 or 1 (No or Yes) to specify if viral contigs should be genotyped (built for HBV, currently)
 
@@ -46,7 +46,7 @@ echo $"Done"
 ## 3. Remove short or unsupported contigs:
 module load python/3.6.2
 # Set -s to be whatever size seems reasonable for your contigs; previously 200 has worked well for viral genomes ~3k bp
-python ~/scripts/inch_assem_filt.py -f ${Dir}/inch_assembly -s 200
+python ViralMine/scripts/inch_assem_filt.py -f ${Dir}/inch_assembly -s 200
 #Output is inchworm.K25.L25.DS.filtered.fa
 
 ## 4. Consolidate similar contig clusters into single contigs by CD-hit (est)
