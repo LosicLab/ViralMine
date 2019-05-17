@@ -30,5 +30,4 @@ TRINITY (see here: https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 
 [TBD]
 
-==============
 (Current version: v0.3)
