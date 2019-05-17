@@ -32,10 +32,11 @@ makeblastdb -in ${Viral_Genome} -input_type 'fasta' - dbtype 'nucl' -out ${viral
 
 ## 2. Run TRINITY inchworm on unmapped reads to generate putative viral contigs
 module load trinity
-mkdir inch_assembly/
+mkdir ${Dir}/inch_assembly/
 ## Set memory based on size of Unmapped fastqs; want no less than 20G for most cases
 echo $"Assembling putative viral contigs for ${sample_id}..."
 if [ $seq_type == "paired" ]
+then
 	Trinity --seqType fq --JM 40G --left ${Unmapped_out_1} --right ${Unmapped_out_2} --CPU 6 --no_run_chrysalis --trimmomatic --output ${Dir}/inch_assembly
 else
 	Trinity --seqType fq --JM 20G --single ${Unmapped_out} --CPU 6 --no_run_chrysalis --trimmomatic --output ${Dir}/inch_assembly
@@ -45,38 +46,39 @@ echo $"Done"
 ## 3. Remove short or unsupported contigs:
 module load python/3.6.2
 # Set -s to be whatever size seems reasonable for your contigs; previously 200 has worked well for viral genomes ~3k bp
-~/scripts/inch_assem_filter.py -f ${Dir}/inch_assembly -s 200
+python ~/scripts/inch_assem_filt.py -f ${Dir}/inch_assembly -s 200
 #Output is inchworm.K25.L25.DS.filtered.fa
 
 ## 4. Consolidate similar contig clusters into single contigs by CD-hit (est)
 module load cd-hit/4.6.1
 echo $"Now clustering alike contigs..."
-str=$(grep "^>" inch_assembly/inchworm.K25.L25.DS.filtered.fa | wc -l)
+str=$(grep "^>" ${Dir}/inch_assembly/inchworm.K25.L25.DS.filtered.fa | wc -l)
 # You can set the similarity score to be more or less stringent (-c); currently 95% similar contigs are consolidated
 cd-hit-est -i ${Dir}/inch_assembly/inchworm.K25.L25.DS.fa -o ${Dir}/inch_assembly/contigs.cluster.fa -c 0.95 -n 10 -T 2 -p 1 -g 1 > cd_hit.log
-end=$(grep "^>" inch_assembly/contigs.cluster.fa | wc -l)
+end=$(grep "^>" ${Dir}/inch_assembly/contigs.cluster.fa | wc -l)
 echo $"Done. Contigs reduced from $str to $end"
 
 ## 5. Blast Contigs against Viral database; filter contigs by bitscore/evalue
 echo $"Now blasting contigs against Viral database to find putative sequences..."
-blastn -query ${Dir}/inch_assembly/contigs.cluster.fa -db ${viral_db} -outfmt 6 -max_target_seqs 1 -evalue 1e-6 -matrix BLOSUM62 -out ${Dir}/inch_assembly/viral_alignment.tsv
+blastn -query ${Dir}/inch_assembly/contigs.cluster.fa -db ${viral_db} -outfmt 6 -max_target_seqs 1 -evalue 1e-6 -out ${Dir}/inch_assembly/viral_alignment.tsv
 echo $"Done"
 
-cat ${Dir}/inch_assembly/viral_alignment.tsv | cut -d '	' -f1 | sort | uniq > ${Dir}/inch_assm/contig_matches.out
+cat ${Dir}/inch_assembly/viral_alignment.tsv | cut -d '	' -f1 | sort | uniq > ${Dir}/inch_assembly/contig_matches.out
 # Sometimes fasta output is multiline sequences; consolidate each sequence to single line after header
 awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);} END {printf("\n");}' ${Dir}/inch_assembly/contigs.cluster.fa > ${Dir}/inch_assembly/tmp.out
 
 ## 6. Consolidate the matching viral contigs from the inchworm output into single contig file
-cat ${Dir}/inch_assm/contig_matches.out | while read i; do
+cat ${Dir}/inch_assembly/contig_matches.out | while read i; do
 	grep -A1 $i ${Dir}/inch_assembly/tmp.out | head -2 >> ${Dir}/inch_assembly/viral_matched_contigs.fa
 done
-rm tmp.out
+rm ${Dir}/inch_assembly/tmp.out
 
 echo $"Viral sequence search complete. See viral_matched_contigs.fa"
 
 ################## Viral Contig Genotype Scoring ###################
 
 if [ $gt_virus == 1 ]
+then
 	## 7. Use BLAST to search matched viral contigs and determine GT using viral genotype database (HBV)
 	cat ${Dir}/inch_assembly/contig_matches.out | while read l; do
 		grep -A1 "$l" ${Dir}/inch_assembly/viral_matched_contigs.fa | grep -v "^--" > ${Dir}/inch_assembly/"$l"_tmp.tmp
@@ -114,14 +116,14 @@ if [ $gt_virus == 1 ]
 			## Calculate dominant genotype for HBV across windows: (NOTE: this only works with the current HBVdb reference sequence nomenclature (which has been included in the github), based on their fasta header naming conventions;
 			## you will need to adjust the grep command and scoring records based on genotyping of your given virus or reference database)
 			echo "Calculating GT scores across windows..."
-            A_score=$(grep '_[PC]-A' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '       ' -f 12 | paste -sd+ | bc)
-            B_score=$(grep '_[PC]-B' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '       ' -f 12 | paste -sd+ | bc)
-            C_score=$(grep '_[PC]-C' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '       ' -f 12 | paste -sd+ | bc)
-            D_score=$(grep '_[PC]-D' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '       ' -f 12 | paste -sd+ | bc)
-            E_score=$(grep '_[PC]-E' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '       ' -f 12 | paste -sd+ | bc)
-            F_score=$(grep '_[PC]-F' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '       ' -f 12 | paste -sd+ | bc)
-            G_score=$(grep '_[PC]-G' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '       ' -f 12 | paste -sd+ | bc)
-            echo -e ">$i\nA: $A_score\nB: $B_score\nC: $C_score\nD: $D_score\nE: $E_Score\nF: $F_score\nG: $G_score" >> ${Dir}/inch_assembly/"$l"_scores.txt
+            A_score=$(grep '_[PC]-A' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            B_score=$(grep '_[PC]-B' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            C_score=$(grep '_[PC]-C' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            D_score=$(grep '_[PC]-D' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            E_score=$(grep '_[PC]-E' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            F_score=$(grep '_[PC]-F' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            G_score=$(grep '_[PC]-G' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            echo -e ">$i\nA: $A_score\nB: $B_score\nC: $C_score\nD: $D_score\nE: $E_Score\nF: $F_score\nG: $G_score" >> ${Dir}/inch_assembly/${sample_id}_scores.txt
             echo "Done"
             rm ${Dir}/inch_assembly/"$i"_hits.tsv
             rm ${Dir}/inch_assembly/seq_tmp.fa
