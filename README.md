@@ -28,7 +28,42 @@ TRINITY (see here: https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 
 ## Quick Start Guide ##
 
+Run parameters are located in the first code block of the `ViralMine.sh` file, and should be modified to point to the required alignment directory, viral sequence fasta, viral BLAST database output directory, and more. Detailed parameter descriptions can be found in the docs (See above).
+
+Files Required:
+
+```
+1. Viral reference sequences in fasta format (or, can use the provided HBVdb fasta or BLASTdb [see 'HBV_Ref_dbs'])
+2. Unmapped reads in fastq format (eg. for single end STAR alignments, these will be 'Unmapped.reads.out'. Check your aligner manual for more information)
+```
+
+Once you have set your parameters in the script file, execute the pipeline (for single end reads) using:
+
+```
+ViralMine.sh Unmapped.reads.out
+```
+
+Replacing `Unmapped.reads.out` with the file name of the unmapped reads file depending on your aligner.
+
+For paired end sequencing, just specify the additional mate pair:
+
+```
+ViralMine.sh Unmapped.reads.out1 Unmapped.reads.out2
+```
+
+Please see the docs for additional information.
+
+
+## Output Files ##
+
 [TBD]
 
-==============
+
+## Known Issues ##
+
+1. Errors will be returned when there are no viable contigs produced by inchworm or after filtering, as no further steps can be completed. Additional error will be thrown if directory structures are not maintained -- for this reason *it is important to use absolute paths where possible in the pipeline parameters!*
+
+2. Viral genotyping of HBV is tricky, and is dependent upon the viral reference database you are using. Current runs with the software have shown that Refseq and HBVdb sequences are similar enough that overall viral genotype should be called consistently, but bitscore/mixed genotype calls will differ depending on reference source. 
+
+
 (Current version: v0.3)
