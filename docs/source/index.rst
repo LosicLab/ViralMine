@@ -1,0 +1,58 @@
+ViralMine: Viral Sequence Miner Tool
+====================================
+
+| Created in the Losic Lab at Ichan Institute of Genetics and Genomics, 
+| Mount Sinai School of Medicine, New York, NY
+
+Introduction
+------------
+
+The *ViralMine* pipeline is a collection of bioinformatic tools designed to process the unmapped reads from RNA-Seq or DNA-Seq aligners and recover large viral sequence contigs of interest, as specified by the user. 
+
+To reduce dependencies and program complexity, this software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. *Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!*. Please see your aligner-of-choice's manual for how to do this.
+
+As the original purpose of the program was to recover contigs matching the Hepatitis B virus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi
+
+
+Installation
+------------
+
+*ViralMine* is designed to be run from the MacOS command line or linux shell environment, an uses a combination of Bash and python. 
+
+Because of the large RAM requirements of component programs for this pipeline (TRINITY's Inchworm) it is *highly* recommended that *ViralMine* be installed on a compute cluster or a machine with at least 30-40GB of RAM available. If this is not possible for you, you will need to adjust the trinity jelly-fish memory parameters to a memory size your machine can allocate ("-JM [Memory]").
+
+To install and set up *ViralMine*, from the command line:
+
+1. Navigate to the directory where you want to install the pipeline
+2. Clone *ViralMine* into your local repositiory: 
+	
+		``git clone https://github.com/LosicLab/ViralMine.git``
+
+3. Make sure the bash and python scripts have execute permissions:
+	
+		``chmod -x ViralMine.sh``
+		``chmod -x scripts/*.py``
+
+4. Add the cloned repository to your PATH:
+	
+		``export PATH=$PATH:{path/to/ViralMine}``
+
+At this point, check that ViralMine has been added to your path using `echo $PATH`.
+
+Additionally, you will need to have the following programs installed and added to your path before you can mine your first sample:
+
+- BLAST >= 2.6.2 (recommend latest version)
+- python >=3.6.x (recommend latest version)
+- cd-hit >=4.6.x (recommend latest version)
+- TRINITY (https://github.com/trinityrnaseq/trinityrnaseq/wiki)
+
+
+Running ViralMine
+=================
+
+[TBD]
+
+HELP
+----
+
+If you have further questions, you can email me at adrian.bubie@mssm.edu
