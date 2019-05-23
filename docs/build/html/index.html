@@ -38,15 +38,15 @@
 </div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>The <em>ViralMine</em> pipeline is a collection of bioinformatic tools designed to process the unmapped reads from RNA-Seq or DNA-Seq aligners and recover large viral sequence contigs of interest, as specified by the user.</p>
-<p>To reduce dependencies and program complexity, this software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. <em>Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!</em>. Please see your aligner-of-choice’s manual for how to do this.</p>
+<p>The <strong>ViralMine</strong> pipeline is a collection of bioinformatic tools designed to process the unmapped reads from RNA-Seq or DNA-Seq aligners and recover large viral sequence contigs of interest, as specified by the user.</p>
+<p>To reduce dependencies and program complexity, this software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. <em>Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!</em> Please see your aligner-of-choice’s manual for how to do this.</p>
 <p>As the original purpose of the program was to recover contigs matching the Hepatitis B virus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi">https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi</a></p>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p><em>ViralMine</em> is designed to be run from the MacOS command line or linux shell environment, an uses a combination of Bash and python.</p>
-<p>Because of the large RAM requirements of component programs for this pipeline (TRINITY’s Inchworm) it is <em>highly</em> recommended that <em>ViralMine</em> be installed on a compute cluster or a machine with at least 30-40GB of RAM available. If this is not possible for you, you will need to adjust the trinity jelly-fish memory parameters to a memory size your machine can allocate (“-JM [Memory]”).</p>
-<p>To install and set up <em>ViralMine</em>, from the command line:</p>
+<p><strong>ViralMine</strong> is designed to be run from the MacOS command line or linux shell environment, an uses a combination of Bash and python.</p>
+<p>Because of the large RAM requirements of component programs for this pipeline (TRINITY’s Inchworm) it is <em>highly</em> recommended that <em>ViralMine</em> be installed on a compute cluster or a machine with at least 30-40GB of RAM available. If this is not possible for you, you will need to adjust the trinity jelly-fish memory parameters to a memory size your machine can allocate (<code class="docutils literal notranslate"><span class="pre">-JM</span> <span class="pre">[Memory]</span></code>).</p>
+<p>To install and set up <strong>ViralMine</strong>, from the command line:</p>
 <ol class="arabic">
 <li><p>Navigate to the directory where you want to install the pipeline</p></li>
 <li><p>Clone <em>ViralMine</em> into your local repositiory:</p>
@@ -56,8 +56,7 @@
 </li>
 <li><p>Make sure the bash and python scripts have execute permissions:</p>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">chmod</span> <span class="pre">-x</span> <span class="pre">ViralMine.sh</span></code>
-<code class="docutils literal notranslate"><span class="pre">chmod</span> <span class="pre">-x</span> <span class="pre">scripts/*.py</span></code></p>
+<div><p><code class="docutils literal notranslate"><span class="pre">chmod</span> <span class="pre">-x</span> <span class="pre">ViralMine.sh</span> <span class="pre">scripts/*.py</span></code></p>
 </div></blockquote>
 </li>
 <li><p>Add the cloned repository to your PATH:</p>
@@ -66,7 +65,7 @@
 </div></blockquote>
 </li>
 </ol>
-<p>At this point, check that ViralMine has been added to your path using <cite>echo $PATH</cite>.</p>
+<p>At this point, check that <strong>ViralMine</strong> has been added to your path using <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">$PATH</span></code>.</p>
 <p>Additionally, you will need to have the following programs installed and added to your path before you can mine your first sample:</p>
 <ul class="simple">
 <li><p>BLAST &gt;= 2.6.2 (recommend latest version)</p></li>
@@ -78,10 +77,49 @@
 </div>
 <div class="section" id="running-viralmine">
 <h1>Running ViralMine<a class="headerlink" href="#running-viralmine" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="help">
-<h2>HELP<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
-<p>If you have further questions, you can email me at <a class="reference external" href="mailto:adrian&#46;bubie&#37;&#52;&#48;mssm&#46;edu">adrian<span>&#46;</span>bubie<span>&#64;</span>mssm<span>&#46;</span>edu</a></p>
+<div class="section" id="setup-blast-db">
+<h2>Setup: BLAST db<a class="headerlink" href="#setup-blast-db" title="Permalink to this headline">¶</a></h2>
+<p><strong>ViralMine</strong> requires the user to have generated a BLAST nucleotide database of viral reference sequences before samples can be processed. This can be done by using a fasta file of collected sequences and the command line BLAST tools’ <code class="docutils literal notranslate"><span class="pre">makeblastdb</span></code> command (see the BLAST manual here for more information: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/books/NBK279690/">https://www.ncbi.nlm.nih.gov/books/NBK279690/</a>).</p>
+<p>Make sure the directory for you compiled database is in a location <strong>ViralMine</strong> can read from.</p>
+<p>If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes <cite>A, B, C, D, F,</cite> and <cite>G</cite> from the HBVdb reference (<a class="reference external" href="https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex">https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex</a>) and included in the <strong>ViralMine</strong> download (see the <code class="docutils literal notranslate"><span class="pre">HBV_Ref_dbs/</span></code> directory).</p>
 </div>
+<div class="section" id="setup-alignment">
+<h2>Setup: Alignment<a class="headerlink" href="#setup-alignment" title="Permalink to this headline">¶</a></h2>
+<p>Prior to running <strong>ViralMine</strong>, users will need to generate the aligned and unaligned read files for samples they wish to process. There is no specific aligner requirement, but STAR has been the validated aligner of choice for RNA-Seq reads, and BWA for DNA-Seq reads. Check your aligner of choice’s manual to determine what parameter flag must be set to generate <em>unmapped reads</em>.</p>
+<p><strong>ViralMine</strong> does not require any files other than the Unmapped Reads file(s) from the aligner output.</p>
+</div>
+<div class="section" id="setup-viralmine-parameter-configuration">
+<h2>Setup: ViralMine parameter configuration:<a class="headerlink" href="#setup-viralmine-parameter-configuration" title="Permalink to this headline">¶</a></h2>
+<p><strong>ViralMine is currently configured to run on one single or paired-end RNA/DNA sample at a time</strong>. Parameters are specified in the opening block of the <code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span></code> script, seen below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Dir</span><span class="o">=</span><span class="s2">&quot;path/to/unmapped_reads.out/&quot;</span>
+<span class="n">seq_type</span><span class="o">=</span><span class="s2">&quot;paired&quot;</span>
+<span class="n">Viral_Genome</span><span class="o">=</span><span class="s2">&quot;path/to/input.genome.fa&quot;</span>
+<span class="n">viral_db</span><span class="o">=</span><span class="s2">&quot;path/to/viral/blastn_db/viral.db&quot;</span>
+<span class="n">sample_id</span><span class="o">=</span><span class="s2">&quot;sample_name&quot;</span>
+<span class="n">contig_size_filter</span><span class="o">=</span><span class="mi">200</span>
+<span class="n">gt_virus</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>A full list of the parameters and their options is discussed in the table below (see <strong>Parameter Explanations</strong>).</p>
+<p>It is recommended that for <em>each sample</em> that you run <strong>ViralMine</strong> with, you make a uniquely named copy of the <code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span></code> executable. For example, if you have samples <code class="docutils literal notranslate"><span class="pre">Sample_1</span></code> and <code class="docutils literal notranslate"><span class="pre">Sample_2</span></code>, you would create <code class="docutils literal notranslate"><span class="pre">ViralMine_S1.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">ViralMine_S2.sh</span></code> in the <code class="docutils literal notranslate"><span class="pre">~/ViralMine</span></code> directory. You do <strong>NOT</strong> need to copy any of the files in <code class="docutils literal notranslate"><span class="pre">scripts/</span></code>.</p>
+</div>
+<div class="section" id="id1">
+<h2>Running ViralMine<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Once you have generated your unmapped read files, built your viral reference database, and specified your input files and reference directories in the <code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span></code> parameters, you can execute the script for single-end samples using:</p>
+<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">Unmapped.Reads.out</span></code></p>
+<p>or for paired-end samples using</p>
+<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">Unmapped.Reads.out1</span> <span class="pre">Unmapped.Reads.out2</span></code></p>
+<p>Script processes and error messages are configured to be printed to standard out. If you would like to capture these in a log file, run:</p>
+<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">Unmapped.Reads.out</span> <span class="pre">&gt;</span> <span class="pre">{path/to/log_dir}/log.out</span></code></p>
+</div>
+</div>
+<div class="section" id="parameter-explanations">
+<h1>Parameter Explanations<a class="headerlink" href="#parameter-explanations" title="Permalink to this headline">¶</a></h1>
+<p>[TBD]</p>
+</div>
+<div class="section" id="help">
+<h1>HELP<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h1>
+<p>If you have further questions, you can email me at <a class="reference external" href="mailto:adrian&#46;bubie&#37;&#52;&#48;mssm&#46;edu">adrian<span>&#46;</span>bubie<span>&#64;</span>mssm<span>&#46;</span>edu</a></p>
 </div>
 
 
