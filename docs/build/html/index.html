@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>ViralMine: Viral Sequence Miner Tool &#8212; ViralMine 0.0.3 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="viralmine-viral-sequence-miner-tool">
+<h1>ViralMine: Viral Sequence Miner Tool<a class="headerlink" href="#viralmine-viral-sequence-miner-tool" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line">Created in the Losic Lab at Ichan Institute of Genetics and Genomics,</div>
+<div class="line">Mount Sinai School of Medicine, New York, NY</div>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The <em>ViralMine</em> pipeline is a collection of bioinformatic tools designed to process the unmapped reads from RNA-Seq or DNA-Seq aligners and recover large viral sequence contigs of interest, as specified by the user.</p>
+<p>To reduce dependencies and program complexity, this software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. <em>Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!</em>. Please see your aligner-of-choice’s manual for how to do this.</p>
+<p>As the original purpose of the program was to recover contigs matching the Hepatitis B virus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi">https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi</a></p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p><em>ViralMine</em> is designed to be run from the MacOS command line or linux shell environment, an uses a combination of Bash and python.</p>
+<p>Because of the large RAM requirements of component programs for this pipeline (TRINITY’s Inchworm) it is <em>highly</em> recommended that <em>ViralMine</em> be installed on a compute cluster or a machine with at least 30-40GB of RAM available. If this is not possible for you, you will need to adjust the trinity jelly-fish memory parameters to a memory size your machine can allocate (“-JM [Memory]”).</p>
+<p>To install and set up <em>ViralMine</em>, from the command line:</p>
+<ol class="arabic">
+<li><p>Navigate to the directory where you want to install the pipeline</p></li>
+<li><p>Clone <em>ViralMine</em> into your local repositiory:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/LosicLab/ViralMine.git</span></code></p>
+</div></blockquote>
+</li>
+<li><p>Make sure the bash and python scripts have execute permissions:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">chmod</span> <span class="pre">-x</span> <span class="pre">ViralMine.sh</span></code>
+<code class="docutils literal notranslate"><span class="pre">chmod</span> <span class="pre">-x</span> <span class="pre">scripts/*.py</span></code></p>
+</div></blockquote>
+</li>
+<li><p>Add the cloned repository to your PATH:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">PATH=$PATH:{path/to/ViralMine}</span></code></p>
+</div></blockquote>
+</li>
+</ol>
+<p>At this point, check that ViralMine has been added to your path using <cite>echo $PATH</cite>.</p>
+<p>Additionally, you will need to have the following programs installed and added to your path before you can mine your first sample:</p>
+<ul class="simple">
+<li><p>BLAST &gt;= 2.6.2 (recommend latest version)</p></li>
+<li><p>python &gt;=3.6.x (recommend latest version)</p></li>
+<li><p>cd-hit &gt;=4.6.x (recommend latest version)</p></li>
+<li><p>TRINITY (<a class="reference external" href="https://github.com/trinityrnaseq/trinityrnaseq/wiki">https://github.com/trinityrnaseq/trinityrnaseq/wiki</a>)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="running-viralmine">
+<h1>Running ViralMine<a class="headerlink" href="#running-viralmine" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="help">
+<h2>HELP<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h2>
+<p>If you have further questions, you can email me at <a class="reference external" href="mailto:adrian&#46;bubie&#37;&#52;&#48;mssm&#46;edu">adrian<span>&#46;</span>bubie<span>&#64;</span>mssm<span>&#46;</span>edu</a></p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">ViralMine</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Adrian Bubie.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
