@@ -12,11 +12,12 @@
 # Parameters:
 Dir="path/to/unmapped_reads.out/" #Path to the location of your alignment output files
 seq_type="paired" # Select "paired" or "single" end sequencing (to select how many fastqs to expect)
+Exisiting_Blastdb=1 # 0 or 1 (No or Yes) to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta
 Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
-viral_db="path/to/viral/blastn_db/viral.db" # Where blast database for viral reference sequences will be output (can be substituted with reference db included in git repo)
-sample_id="sample_name" # Name you want to give the sample (JobID)
-contig_size_filter=200 #length flag below which putative viral contigs will be removed  
+viral_db="~/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where blast database for viral reference sequences will be output 
+contig_size_filter=100 #length flag below which putative viral contigs will be removed  
 gt_virus=1 # 0 or 1 (No or Yes) to specify if viral contigs should be genotyped (built for HBV, currently)
+sample_id="sample_name" # Name you want to give the sample
 
 if [ $seq_type == "paired" ]
 then
@@ -26,13 +27,14 @@ else
 	Unmapped_out=${Dir}/$1
 fi
 
-module purge
-module load blast
-## 1. Create blastn database from Viral genomes of interest:
+
+## 1. Create blastn database from Viral genomes of interest (if not using HBV reference db):
+if [ $Exisiting_Blastdb=0 ]
+then
 makeblastdb -in ${Viral_Genome} -input_type 'fasta' - dbtype 'nucl' -out ${viral_db}
+fi
 
 ## 2. Run TRINITY inchworm on unmapped reads to generate putative viral contigs
-module load trinity
 mkdir ${Dir}/inch_assembly/
 ## Set memory based on size of Unmapped fastqs; want no less than 20G for most cases
 echo $"Assembling putative viral contigs for ${sample_id}..."
@@ -45,13 +47,10 @@ fi
 echo $"Done"
 
 ## 3. Remove short or unsupported contigs:
-module load python/3.6.2
-# Set -s to be whatever size seems reasonable for your contigs; previously 200 has worked well for viral genomes ~3k bp
 python ViralMine/scripts/inch_assem_filt.py -f ${Dir}/inch_assembly -s $contig_size_filter
 #Output is inchworm.K25.L25.DS.filtered.fa
 
 ## 4. Consolidate similar contig clusters into single contigs by CD-hit (est)
-module load cd-hit/4.6.1
 echo $"Now clustering alike contigs..."
 str=$(grep "^>" ${Dir}/inch_assembly/inchworm.K25.L25.DS.filtered.fa | wc -l)
 # You can set the similarity score to be more or less stringent (-c); currently 95% similar contigs are consolidated
