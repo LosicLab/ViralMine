@@ -36,7 +36,7 @@ To install and set up **ViralMine**, from the command line:
 	
 		``export PATH=$PATH:{path/to/ViralMine}``
 
-At this point, check that **ViralMine** has been added to your path using ``echo $PATH``.
+At this point, check that **ViralMine** has been added to your path using ``echo $PATH``. **NOTE:** this will only add the path temporarily (until you log out of the terminal); to permanantly add **ViralMine** to your path, add the command in 4. to your '.bashrc' file, and run ``source ~/.bashrc``. 
 
 Additionally, you will need to have the following programs installed and added to your path before you can mine your first sample:
 
@@ -49,23 +49,23 @@ Additionally, you will need to have the following programs installed and added t
 Running ViralMine
 =================
 
-
-Setup: BLAST db
----------------
-
-**ViralMine** requires the user to have generated a BLAST nucleotide database of viral reference sequences before samples can be processed. This can be done by using a fasta file of collected sequences and the command line BLAST tools' ``makeblastdb`` command (see the BLAST manual here for more information: https://www.ncbi.nlm.nih.gov/books/NBK279690/). 
-
-Make sure the directory for you compiled database is in a location **ViralMine** can read from.
-
-If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes `A, B, C, D, F,` and `G` from the HBVdb reference (https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex) and included in the **ViralMine** download (see the ``HBV_Ref_dbs/`` directory).
-
-
 Setup: Alignment
 ----------------
 
 Prior to running **ViralMine**, users will need to generate the aligned and unaligned read files for samples they wish to process. There is no specific aligner requirement, but STAR has been the validated aligner of choice for RNA-Seq reads, and BWA for DNA-Seq reads. Check your aligner of choice's manual to determine what parameter flag must be set to generate *unmapped reads*.
 
 **ViralMine** does not require any files other than the Unmapped Reads file(s) from the aligner output. 
+
+
+
+Setup: BLAST db
+---------------
+
+**ViralMine** requires the user to generate a BLAST nucleotide database of viral reference sequences before samples can be processed. This can be done by using a fasta file of collected sequences and the command line BLAST tools' ``makeblastdb`` command (see the BLAST manual here for more information: https://www.ncbi.nlm.nih.gov/books/NBK279690/). This is handled in the first step of the pipeline, but if the user already has a BLAST database compiled, they can skip this step using the ``Exisiting_Blastdb`` flag.
+
+
+If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes `A, B, C, D, F,` and `G` from the HBVdb reference (https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex) and included in the **ViralMine** download (see the ``HBV_Ref_dbs/`` directory). The script defualt is to pointed to this location.
+
 
 
 Setup: ViralMine parameter configuration:
@@ -77,11 +77,12 @@ Setup: ViralMine parameter configuration:
 
 	Dir="path/to/unmapped_reads.out/" 
 	seq_type="paired" 
+	Exisiting_Blastdb=1
 	Viral_Genome="path/to/input.genome.fa" 
 	viral_db="path/to/viral/blastn_db/viral.db"
-	sample_id="sample_name" 
 	contig_size_filter=200  
 	gt_virus=1
+	sample_id="sample_name" 
 	
 
 A full list of the parameters and their options is discussed in the table below (see **Parameter Explanations**).
@@ -109,8 +110,24 @@ Script processes and error messages are configured to be printed to standard out
 Parameter Explanations 
 ======================
 
-[TBD]
+:``Dir``:	Directory location of the unmapped reads file(s), as well as the location where the output files will be published. It is highly recommended that the absolute path be used.
+:``seq_type``:	Either "paired" (default) or "single". Flag used to specify whether paired or single-ended sequencing was used, and to specify how many unmapped reads files the script should expect.
+:``Exisiting_Blastdb``:	Either 0 or 1 (No or Yes). This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is 0, as the default HBV Reference database has been included in the ViralMine download.
+:``Viral_Genome``:	Filepath to fasta containing viral reference sequences to build a new nucleotide BLAST database. Will be ignored it "Exisiting_Blastdb" is 1.
+:``viral_db``:	Path to either existing viral reference BLASTdb OR path to where the viral database should be created.
+:``contig_size_filter``:	Integer value, specifying the smallest contig size to keep when aligning agains the viral references. Default size is 100bp (what we have found to work well for HBV).
+:``gt_virus``:	Flag for running contig genotyping, either 0 or 1 (No or Yes). **Note** this should ONLY be run if you are trying to genotype HBV contigs! This will most likely fail or provide useless results for other viruses. Default is 1, as the expected default reference database is HBV. 
+:``sample_id``:	Sample name or sample ID. This will be used to name the genotyping outfile.
 
+
+Output Files
+============
+
+Each step of the pipeline will produce several output files, and depending on the size of your unmapped read fastqs, you should expect to use 5-15GB of storage. Key output files are summarized below:
+
+1. ``viral_matched_contigs.fa``: A fasta file containing all the inchworm contigs that matched viral reference sequences
+2. ``viral_alignment.tsv``: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.
+3. ``[sample_name]_scores.txt``: Will only be generated if the HBV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.
 
 
 HELP

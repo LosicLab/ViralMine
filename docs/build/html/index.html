@@ -65,7 +65,7 @@
 </div></blockquote>
 </li>
 </ol>
-<p>At this point, check that <strong>ViralMine</strong> has been added to your path using <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">$PATH</span></code>.</p>
+<p>At this point, check that <strong>ViralMine</strong> has been added to your path using <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">$PATH</span></code>. <strong>NOTE:</strong> this will only add the path temporarily (until you log out of the terminal); to permanantly add <strong>ViralMine</strong> to your path, add the command in 4. to your ‘.bashrc’ file, and run <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">~/.bashrc</span></code>.</p>
 <p>Additionally, you will need to have the following programs installed and added to your path before you can mine your first sample:</p>
 <ul class="simple">
 <li><p>BLAST &gt;= 2.6.2 (recommend latest version)</p></li>
@@ -77,22 +77,22 @@
 </div>
 <div class="section" id="running-viralmine">
 <h1>Running ViralMine<a class="headerlink" href="#running-viralmine" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="setup-blast-db">
-<h2>Setup: BLAST db<a class="headerlink" href="#setup-blast-db" title="Permalink to this headline">¶</a></h2>
-<p><strong>ViralMine</strong> requires the user to have generated a BLAST nucleotide database of viral reference sequences before samples can be processed. This can be done by using a fasta file of collected sequences and the command line BLAST tools’ <code class="docutils literal notranslate"><span class="pre">makeblastdb</span></code> command (see the BLAST manual here for more information: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/books/NBK279690/">https://www.ncbi.nlm.nih.gov/books/NBK279690/</a>).</p>
-<p>Make sure the directory for you compiled database is in a location <strong>ViralMine</strong> can read from.</p>
-<p>If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes <cite>A, B, C, D, F,</cite> and <cite>G</cite> from the HBVdb reference (<a class="reference external" href="https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex">https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex</a>) and included in the <strong>ViralMine</strong> download (see the <code class="docutils literal notranslate"><span class="pre">HBV_Ref_dbs/</span></code> directory).</p>
-</div>
 <div class="section" id="setup-alignment">
 <h2>Setup: Alignment<a class="headerlink" href="#setup-alignment" title="Permalink to this headline">¶</a></h2>
 <p>Prior to running <strong>ViralMine</strong>, users will need to generate the aligned and unaligned read files for samples they wish to process. There is no specific aligner requirement, but STAR has been the validated aligner of choice for RNA-Seq reads, and BWA for DNA-Seq reads. Check your aligner of choice’s manual to determine what parameter flag must be set to generate <em>unmapped reads</em>.</p>
 <p><strong>ViralMine</strong> does not require any files other than the Unmapped Reads file(s) from the aligner output.</p>
+</div>
+<div class="section" id="setup-blast-db">
+<h2>Setup: BLAST db<a class="headerlink" href="#setup-blast-db" title="Permalink to this headline">¶</a></h2>
+<p><strong>ViralMine</strong> requires the user to generate a BLAST nucleotide database of viral reference sequences before samples can be processed. This can be done by using a fasta file of collected sequences and the command line BLAST tools’ <code class="docutils literal notranslate"><span class="pre">makeblastdb</span></code> command (see the BLAST manual here for more information: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/books/NBK279690/">https://www.ncbi.nlm.nih.gov/books/NBK279690/</a>). This is handled in the first step of the pipeline, but if the user already has a BLAST database compiled, they can skip this step using the <code class="docutils literal notranslate"><span class="pre">Exisiting_Blastdb</span></code> flag.</p>
+<p>If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes <cite>A, B, C, D, F,</cite> and <cite>G</cite> from the HBVdb reference (<a class="reference external" href="https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex">https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex</a>) and included in the <strong>ViralMine</strong> download (see the <code class="docutils literal notranslate"><span class="pre">HBV_Ref_dbs/</span></code> directory). The script defualt is to pointed to this location.</p>
 </div>
 <div class="section" id="setup-viralmine-parameter-configuration">
 <h2>Setup: ViralMine parameter configuration:<a class="headerlink" href="#setup-viralmine-parameter-configuration" title="Permalink to this headline">¶</a></h2>
 <p><strong>ViralMine is currently configured to run on one single or paired-end RNA/DNA sample at a time</strong>. Parameters are specified in the opening block of the <code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span></code> script, seen below:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Dir</span><span class="o">=</span><span class="s2">&quot;path/to/unmapped_reads.out/&quot;</span>
 <span class="n">seq_type</span><span class="o">=</span><span class="s2">&quot;paired&quot;</span>
+<span class="n">Exisiting_Blastdb</span><span class="o">=</span><span class="mi">1</span>
 <span class="n">Viral_Genome</span><span class="o">=</span><span class="s2">&quot;path/to/input.genome.fa&quot;</span>
 <span class="n">viral_db</span><span class="o">=</span><span class="s2">&quot;path/to/viral/blastn_db/viral.db&quot;</span>
 <span class="n">sample_id</span><span class="o">=</span><span class="s2">&quot;sample_name&quot;</span>
@@ -115,7 +115,9 @@
 </div>
 <div class="section" id="parameter-explanations">
 <h1>Parameter Explanations<a class="headerlink" href="#parameter-explanations" title="Permalink to this headline">¶</a></h1>
-<p>[TBD]</p>
+</div>
+<div class="section" id="output-files">
+<h1>Output Files<a class="headerlink" href="#output-files" title="Permalink to this headline">¶</a></h1>
 </div>
 <div class="section" id="help">
 <h1>HELP<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h1>
