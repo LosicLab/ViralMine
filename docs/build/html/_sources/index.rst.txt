@@ -80,9 +80,9 @@ Setup: ViralMine parameter configuration:
 	Exisiting_Blastdb=1
 	Viral_Genome="path/to/input.genome.fa" 
 	viral_db="path/to/viral/blastn_db/viral.db"
-	sample_id="sample_name" 
 	contig_size_filter=200  
 	gt_virus=1
+	sample_id="sample_name" 
 	
 
 A full list of the parameters and their options is discussed in the table below (see **Parameter Explanations**).
@@ -110,12 +110,24 @@ Script processes and error messages are configured to be printed to standard out
 Parameter Explanations 
 ======================
 
-
+:``Dir``:	Directory location of the unmapped reads file(s), as well as the location where the output files will be published. It is highly recommended that the absolute path be used.
+:``seq_type``:	Either "paired" (default) or "single". Flag used to specify whether paired or single-ended sequencing was used, and to specify how many unmapped reads files the script should expect.
+:``Exisiting_Blastdb``:	Either 0 or 1 (No or Yes). This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is 0, as the default HBV Reference database has been included in the ViralMine download.
+:``Viral_Genome``:	Filepath to fasta containing viral reference sequences to build a new nucleotide BLAST database. Will be ignored it "Exisiting_Blastdb" is 1.
+:``viral_db``:	Path to either existing viral reference BLASTdb OR path to where the viral database should be created.
+:``contig_size_filter``:	Integer value, specifying the smallest contig size to keep when aligning agains the viral references. Default size is 100bp (what we have found to work well for HBV).
+:``gt_virus``:	Flag for running contig genotyping, either 0 or 1 (No or Yes). **Note** this should ONLY be run if you are trying to genotype HBV contigs! This will most likely fail or provide useless results for other viruses. Default is 1, as the expected default reference database is HBV. 
+:``sample_id``:	Sample name or sample ID. This will be used to name the genotyping outfile.
 
 
 Output Files
 ============
 
+Each step of the pipeline will produce several output files, and depending on the size of your unmapped read fastqs, you should expect to use 5-15GB of storage. Key output files are summarized below:
+
+1. ``viral_matched_contigs.fa``: A fasta file containing all the inchworm contigs that matched viral reference sequences
+2. ``viral_alignment.tsv``: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.
+3. ``[sample_name]_scores.txt``: Will only be generated if the HBV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.
 
 
 HELP

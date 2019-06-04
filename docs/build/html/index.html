@@ -95,9 +95,9 @@
 <span class="n">Exisiting_Blastdb</span><span class="o">=</span><span class="mi">1</span>
 <span class="n">Viral_Genome</span><span class="o">=</span><span class="s2">&quot;path/to/input.genome.fa&quot;</span>
 <span class="n">viral_db</span><span class="o">=</span><span class="s2">&quot;path/to/viral/blastn_db/viral.db&quot;</span>
-<span class="n">sample_id</span><span class="o">=</span><span class="s2">&quot;sample_name&quot;</span>
 <span class="n">contig_size_filter</span><span class="o">=</span><span class="mi">200</span>
 <span class="n">gt_virus</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">sample_id</span><span class="o">=</span><span class="s2">&quot;sample_name&quot;</span>
 </pre></div>
 </div>
 <p>A full list of the parameters and their options is discussed in the table below (see <strong>Parameter Explanations</strong>).</p>
@@ -115,9 +115,41 @@
 </div>
 <div class="section" id="parameter-explanations">
 <h1>Parameter Explanations<a class="headerlink" href="#parameter-explanations" title="Permalink to this headline">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Dir</span></code></dt>
+<dd class="field-odd"><p>Directory location of the unmapped reads file(s), as well as the location where the output files will be published. It is highly recommended that the absolute path be used.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">seq_type</span></code></dt>
+<dd class="field-even"><p>Either “paired” (default) or “single”. Flag used to specify whether paired or single-ended sequencing was used, and to specify how many unmapped reads files the script should expect.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Exisiting_Blastdb</span></code></dt>
+<dd class="field-odd"><p>Either 0 or 1 (No or Yes). This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is 0, as the default HBV Reference database has been included in the ViralMine download.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Viral_Genome</span></code></dt>
+<dd class="field-even"><p>Filepath to fasta containing viral reference sequences to build a new nucleotide BLAST database. Will be ignored it “Exisiting_Blastdb” is 1.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">viral_db</span></code></dt>
+<dd class="field-odd"><p>Path to either existing viral reference BLASTdb OR path to where the viral database should be created.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">contig_size_filter</span></code></dt>
+<dd class="field-even"><p>Integer value, specifying the smallest contig size to keep when aligning agains the viral references. Default size is 100bp (what we have found to work well for HBV).</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">gt_virus</span></code></dt>
+<dd class="field-odd"><p>Flag for running contig genotyping, either 0 or 1 (No or Yes). <strong>Note</strong> this should ONLY be run if you are trying to genotype HBV contigs! This will most likely fail or provide useless results for other viruses. Default is 1, as the expected default reference database is HBV.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">sample_id</span></code></dt>
+<dd class="field-even"><p>Sample name or sample ID. This will be used to name the genotyping outfile.</p>
+</dd>
+</dl>
 </div>
 <div class="section" id="output-files">
 <h1>Output Files<a class="headerlink" href="#output-files" title="Permalink to this headline">¶</a></h1>
+<p>Each step of the pipeline will produce several output files, and depending on the size of your unmapped read fastqs, you should expect to use 5-15GB of storage. Key output files are summarized below:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">viral_matched_contigs.fa</span></code>: A fasta file containing all the inchworm contigs that matched viral reference sequences</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">viral_alignment.tsv</span></code>: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[sample_name]_scores.txt</span></code>: Will only be generated if the HBV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.</p></li>
+</ol>
 </div>
 <div class="section" id="help">
 <h1>HELP<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h1>
