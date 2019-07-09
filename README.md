@@ -61,7 +61,7 @@ Each step of the pipeline will produce several output files, and depending on th
 1. `viral_matched_contigs.fa`: A fasta file containing all the inchworm contigs that matched viral reference sequences
 2. `viral_alignment.tsv`: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.
 3. `[sample_name]_scores.txt`: Will only be generated if the HBV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.
-
+4. `[sample_id]_viral_GT.tsv`: Will only be generated if the HBV genotyping flag has been selected. This contains the calculated dominant viral genotype given the BLAST results. 
 
 ## Known Issues ##
 

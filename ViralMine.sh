@@ -47,7 +47,7 @@ fi
 echo $"Done"
 
 ## 3. Remove short or unsupported contigs:
-python ViralMine/scripts/inch_assem_filt.py -f ${Dir}/inch_assembly -s $contig_size_filter
+python ViralMine/scripts/inch_assem_filt.py -p ${Dir}/inch_assembly -s $contig_size_filter
 #Output is inchworm.K25.L25.DS.filtered.fa
 
 ## 4. Consolidate similar contig clusters into single contigs by CD-hit (est)
@@ -63,7 +63,7 @@ echo $"Now blasting contigs against Viral database to find putative sequences...
 blastn -query ${Dir}/inch_assembly/contigs.cluster.fa -db ${viral_db} -outfmt 6 -max_target_seqs 1 -evalue 1e-6 -out ${Dir}/inch_assembly/viral_alignment.tsv
 echo $"Done"
 
-cat ${Dir}/inch_assembly/viral_alignment.tsv | cut -d '	' -f1 | sort | uniq > ${Dir}/inch_assembly/contig_matches.out
+cat ${Dir}/inch_assembly/viral_alignment.tsv | cut -d '	' -f 1 | sort | uniq > ${Dir}/inch_assembly/contig_matches.out
 # Sometimes fasta output is multiline sequences; consolidate each sequence to single line after header
 awk '/^>/ {printf("\n%s\n",$0);next; } { printf("%s",$0);} END {printf("\n");}' ${Dir}/inch_assembly/contigs.cluster.fa > ${Dir}/inch_assembly/tmp.out
 
@@ -130,4 +130,13 @@ then
     	done < ${Dir}/inch_assembly/"$l"_tmp.tmp
     	rm ${Dir}/inch_assembly/"$l"_tmp.tmp
     done
+    A_scr=$(grep "^A:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+	B_scr=$(grep "^B:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+	C_scr=$(grep "^C:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+	D_scr=$(grep "^D:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+	E_scr=$(grep "^E:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+	F_scr=$(grep "^F:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+	G_scr=$(grep "^G:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+	top_GT=$(printf "$A_scr A\n$B_scr B\n$C_scr C\n$D_scr D\n$E_scr E\n$F_scr F\n$G_scr G\nNA NA" | sort -nr | head -1 | cut -d ' ' -f 2)
+	echo "$sample_id\t$top_GT" >> ${Dir}/inch_assembly/${sample_id}_viral_GT.tsv
 fi
