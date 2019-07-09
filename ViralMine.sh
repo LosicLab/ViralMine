@@ -5,18 +5,18 @@
 
 ## This tool uses the unmapped reads in an RNASeq or DNASeq alignment and searches for reads that match up against a specific virus
 ## or specified viral database, then assembles those reads into putative contigs. 
-## In the case of HBV, these contigs can then be used to subtype the virus using a BLAST sliding window search of the matching contigs.
+## In the case of HBV or HPV, these contigs can then be used to genotype the virus using a BLAST sliding window search of the matching contigs.
 ## The outputs of this tool include matching viral contigs for each sample, BLAST outputs for contig matches, and genotype scores for the matched
 ## contigs (if option specified). All files will be contained within the specified directory (normally the location of your alignment output)
 
 # Parameters:
 Dir="path/to/unmapped_reads.out/" #Path to the location of your alignment output files
 seq_type="paired" # Select "paired" or "single" end sequencing (to select how many fastqs to expect)
-Exisiting_Blastdb=1 # 0 or 1 (No or Yes) to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta
+Exisiting_Blastdb="Yes" # No or Yes, to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta. If Yes, "Viral_Genome" field will be ignored
 Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
 viral_db="~/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where blast database for viral reference sequences will be output 
 contig_size_filter=100 #length flag below which putative viral contigs will be removed  
-gt_virus=1 # 0 or 1 (No or Yes) to specify if viral contigs should be genotyped (built for HBV, currently)
+gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped (built for HBV & HPV only, currently)
 sample_id="sample_name" # Name you want to give the sample
 
 if [ $seq_type == "paired" ]
@@ -29,7 +29,7 @@ fi
 
 
 ## 1. Create blastn database from Viral genomes of interest (if not using HBV reference db):
-if [ $Exisiting_Blastdb=0 ]
+if [ $Exisiting_Blastdb == "No" ]
 then
 makeblastdb -in ${Viral_Genome} -input_type 'fasta' - dbtype 'nucl' -out ${viral_db}
 fi
@@ -47,7 +47,7 @@ fi
 echo $"Done"
 
 ## 3. Remove short or unsupported contigs:
-python ViralMine/scripts/inch_assem_filt.py -f ${Dir}/inch_assembly -s $contig_size_filter
+python ViralMine/scripts/inch_assem_filt.py -p ${Dir}/inch_assembly -s $contig_size_filter
 #Output is inchworm.K25.L25.DS.filtered.fa
 
 ## 4. Consolidate similar contig clusters into single contigs by CD-hit (est)
@@ -77,7 +77,7 @@ echo $"Viral sequence search complete. See viral_matched_contigs.fa"
 
 ################## Viral Contig Genotype Scoring ###################
 
-if [ $gt_virus == 1 ]
+if [ $gt_virus != "none" ]
 then
 	## 7. Use BLAST to search matched viral contigs and determine GT using viral genotype database (HBV)
 	cat ${Dir}/inch_assembly/contig_matches.out | while read l; do
@@ -113,21 +113,75 @@ then
 					INC=$((INC+1))
 				done
 			fi
-			## Calculate dominant genotype for HBV across windows: (NOTE: this only works with the current HBVdb reference sequence nomenclature (which has been included in the github), based on their fasta header naming conventions;
+			## Calculate dominant genotype for HBV or HPV across windows: (NOTE: this only works with the current HBVdb and HPVdb reference sequence nomenclature (which has been included in the github), based on their fasta header naming conventions;
 			## you will need to adjust the grep command and scoring records based on genotyping of your given virus or reference database)
 			echo "Calculating GT scores across windows..."
-            A_score=$(grep '_[PC]-A' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
-            B_score=$(grep '_[PC]-B' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
-            C_score=$(grep '_[PC]-C' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
-            D_score=$(grep '_[PC]-D' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
-            E_score=$(grep '_[PC]-E' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
-            F_score=$(grep '_[PC]-F' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
-            G_score=$(grep '_[PC]-G' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
-            echo -e ">$i\nA: $A_score\nB: $B_score\nC: $C_score\nD: $D_score\nE: $E_Score\nF: $F_score\nG: $G_score" >> ${Dir}/inch_assembly/${sample_id}_scores.txt
+			if [ $gt_virus == "hbv" ]
+			then
+            	A_score=$(grep '_[PC]-A' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            	B_score=$(grep '_[PC]-B' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            	C_score=$(grep '_[PC]-C' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            	D_score=$(grep '_[PC]-D' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            	E_score=$(grep '_[PC]-E' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            	F_score=$(grep '_[PC]-F' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            	G_score=$(grep '_[PC]-G' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -d '\t' -f 12 | paste -sd+ | bc)
+            	echo -e ">$i\nA: $A_score\nB: $B_score\nC: $C_score\nD: $D_score\nE: $E_Score\nF: $F_score\nG: $G_score" >> ${Dir}/inch_assembly/${sample_id}_scores.txt
+            elif [ $gt_virus == "hpv" ]
+            then
+            	HPV16_score=$(grep '_Human-papillomavirus-16' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV18_score=$(grep '_Human-papillomavirus-18' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV33_score=$(grep '_Human-papillomavirus-33' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV45_score=$(grep '_Human-papillomavirus-45' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV31_score=$(grep '_Human-papillomavirus-31' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV58_score=$(grep '_Human-papillomavirus-58' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV52_score=$(grep '_Human-papillomavirus-52' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV35_score=$(grep '_Human-papillomavirus-35' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV59_score=$(grep '_Human-papillomavirus-59' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV56_score=$(grep '_Human-papillomavirus-56' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV51_score=$(grep '_Human-papillomavirus-51' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV39_score=$(grep '_Human-papillomavirus-39' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV73_score=$(grep '_Human-papillomavirus-73' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV68_score=$(grep '_Human-papillomavirus-68' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	HPV82_score=$(grep '_Human-papillomavirus-82' ${Dir}/inch_assembly/"$i"_hits.tsv | cut -f 12 | paste -sd+ | bc)
+            	echo -e ">$i\nHPV16: $HPV16_score\nHPV18: $HPV18_score\nHPV33: $HPV33_score\nHPV45: $HPV45_score\nHPV31: $HPV31_Score\nHPV58: $HPV58_score\nHPV52: $HPV52_score\nHPV35: $HPV35_score\nHPV59: $HPV59_score\nHPV56: $HPV56_score\nHPV51: $HPV51_score\nHPV39: $HPV39_score\nHPV73: $HPV73_score\nHPV68: $HPV68_score\nHPV82: $HPV82_score" >> ${Dir}/inch_assembly/${sample_id}_scores.txt
+            fi
             echo "Done"
             rm ${Dir}/inch_assembly/"$i"_hits.tsv
             rm ${Dir}/inch_assembly/seq_tmp.fa
     	done < ${Dir}/inch_assembly/"$l"_tmp.tmp
     	rm ${Dir}/inch_assembly/"$l"_tmp.tmp
     done
+    ## Determine Dominant expressed genotype for given sample, based on sum of bitscores across matching viral contigs:
+    if [ $gt_virus == "hbv" ]
+    then
+		A_scr=$(grep "^A:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		B_scr=$(grep "^B:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		C_scr=$(grep "^C:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		D_scr=$(grep "^D:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		E_scr=$(grep "^E:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		F_scr=$(grep "^F:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		G_scr=$(grep "^G:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		top_GT=$(printf "$A_scr A\n$B_scr B\n$C_scr C\n$D_scr D\n$E_scr E\n$F_scr F\n$G_scr G\nNA NA" | sort -nr | head -1 | cut -d ' ' -f 2)
+		echo "$sample_id\t$top_GT"
+		echo "$sample_id\t$top_GT" >> ${Dir}/inch_assembly/${sample_id}_viral_GT.tsv
+	elif [ $gt_virus == "hpv" ]
+	then
+		HPV16_scr=$(grep "^HPV16:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV18_scr=$(grep "^HPV18:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV33_scr=$(grep "^HPV33:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV45_scr=$(grep "^HPV45:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV31_scr=$(grep "^HPV31:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV58_scr=$(grep "^HPV58:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV52_scr=$(grep "^HPV52:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV35_scr=$(grep "^HPV35:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV59_scr=$(grep "^HPV59:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV56_scr=$(grep "^HPV56:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV51_scr=$(grep "^HPV51:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV39_scr=$(grep "^HPV39:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV73_scr=$(grep "^HPV73:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV68_scr=$(grep "^HPV68:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		HPV82_scr=$(grep "^HPV82:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
+		top_GT=$(printf "$HPV16_scr HPV16\n$HPV18_scr HPV18\n$HPV33_scr HPV33\n$HPV45_scr HPV45\n$HPV31_scr HPV31\n$HPV58_scr HPV58\n$HPV52_scr HPV52\n$HPV35_scr HPV35\n$HPV59_scr HPV59\n$HPV56_scr HPV56\n$HPV51_scr HPV51\n$HPV39_scr HPV39\n$HPV73_scr HPV73\n$HPV68_scr HPV68\n$HPV82_scr HPV82\nNA NA" | sort -nr | head -1 | cut -d ' ' -f 2)
+		echo "$sample_id	$top_GT" >> ${Dir}/inch_assembly/${sample_id}_viral_GT.tsv
+	fi
 fi
