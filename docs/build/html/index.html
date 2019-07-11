@@ -40,7 +40,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>The <strong>ViralMine</strong> pipeline is a collection of bioinformatic tools designed to process the unmapped reads from RNA-Seq or DNA-Seq aligners and recover large viral sequence contigs of interest, as specified by the user.</p>
 <p>To reduce dependencies and program complexity, this software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. <em>Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!</em> Please see your aligner-of-choice’s manual for how to do this.</p>
-<p>As the original purpose of the program was to recover contigs matching the Hepatitis B virus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi">https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi</a></p>
+<p>As the original purpose of the program was to recover contigs matching the Hepatitis B virus and Human Papillomavirus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi">https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi</a></p>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
@@ -86,6 +86,7 @@
 <h2>Setup: BLAST db<a class="headerlink" href="#setup-blast-db" title="Permalink to this headline">¶</a></h2>
 <p><strong>ViralMine</strong> requires the user to generate a BLAST nucleotide database of viral reference sequences before samples can be processed. This can be done by using a fasta file of collected sequences and the command line BLAST tools’ <code class="docutils literal notranslate"><span class="pre">makeblastdb</span></code> command (see the BLAST manual here for more information: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/books/NBK279690/">https://www.ncbi.nlm.nih.gov/books/NBK279690/</a>). This is handled in the first step of the pipeline, but if the user already has a BLAST database compiled, they can skip this step using the <code class="docutils literal notranslate"><span class="pre">Exisiting_Blastdb</span></code> flag.</p>
 <p>If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes <cite>A, B, C, D, F,</cite> and <cite>G</cite> from the HBVdb reference (<a class="reference external" href="https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex">https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex</a>) and included in the <strong>ViralMine</strong> download (see the <code class="docutils literal notranslate"><span class="pre">HBV_Ref_dbs/</span></code> directory). The script defualt is to pointed to this location.</p>
+<p>If you are mining HPV viral reads, a nucleotide reference database is also available (<code class="docutils literal notranslate"><span class="pre">HPV_Ref_dbs/</span></code>) that includes the 15 oncogenic genotypes associated with the vast majority of cervical cancers (<em>Castellsague, X. Gynecol Oncol. 2008</em>). Genome reference sequences for these genotypes were compiled from the most recent published sequence by RefSeq.</p>
 </div>
 <div class="section" id="setup-viralmine-parameter-configuration">
 <h2>Setup: ViralMine parameter configuration:<a class="headerlink" href="#setup-viralmine-parameter-configuration" title="Permalink to this headline">¶</a></h2>
@@ -96,7 +97,7 @@
 <span class="n">Viral_Genome</span><span class="o">=</span><span class="s2">&quot;path/to/input.genome.fa&quot;</span>
 <span class="n">viral_db</span><span class="o">=</span><span class="s2">&quot;path/to/viral/blastn_db/viral.db&quot;</span>
 <span class="n">contig_size_filter</span><span class="o">=</span><span class="mi">200</span>
-<span class="n">gt_virus</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">gt_virus</span><span class="o">=</span><span class="s2">&quot;hbv&quot;</span>
 <span class="n">sample_id</span><span class="o">=</span><span class="s2">&quot;sample_name&quot;</span>
 </pre></div>
 </div>
@@ -123,7 +124,7 @@
 <dd class="field-even"><p>Either “paired” (default) or “single”. Flag used to specify whether paired or single-ended sequencing was used, and to specify how many unmapped reads files the script should expect.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Exisiting_Blastdb</span></code></dt>
-<dd class="field-odd"><p>Either 0 or 1 (No or Yes). This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is 0, as the default HBV Reference database has been included in the ViralMine download.</p>
+<dd class="field-odd"><p>Either “No” or “Yes”. This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is Yes, as the default HBV Reference database has been included in the ViralMine download.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Viral_Genome</span></code></dt>
 <dd class="field-even"><p>Filepath to fasta containing viral reference sequences to build a new nucleotide BLAST database. Will be ignored it “Exisiting_Blastdb” is 1.</p>
@@ -135,7 +136,7 @@
 <dd class="field-even"><p>Integer value, specifying the smallest contig size to keep when aligning agains the viral references. Default size is 100bp (what we have found to work well for HBV).</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">gt_virus</span></code></dt>
-<dd class="field-odd"><p>Flag for running contig genotyping, either 0 or 1 (No or Yes). <strong>Note</strong> this should ONLY be run if you are trying to genotype HBV contigs! This will most likely fail or provide useless results for other viruses. Default is 1, as the expected default reference database is HBV.</p>
+<dd class="field-odd"><p>Flag for running contig genotyping, either “hbv”,”hpv”, or “none”. <strong>Note</strong> this should ONLY be run if you are trying to genotype HBV or HPV contigs with the included reference databases! This will most likely fail or provide useless results for other viruses. Default is “hbv”, as the expected default reference database is HBV.</p>
 </dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">sample_id</span></code></dt>
 <dd class="field-even"><p>Sample name or sample ID. This will be used to name the genotyping outfile.</p>
@@ -148,7 +149,8 @@
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">viral_matched_contigs.fa</span></code>: A fasta file containing all the inchworm contigs that matched viral reference sequences</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">viral_alignment.tsv</span></code>: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[sample_name]_scores.txt</span></code>: Will only be generated if the HBV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[sample_id]_scores.txt</span></code>: Will only be generated if the HBV or HPV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype tumor viral infection of a patient, or characterize a mixed genotype.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[sample_id]_viral_GT.tsv</span></code>: Will only be generated if the genotyping flag is on for HPV or HBV. This will contain the calculated dominant genotype for the tumor across patient contigs by summation of all genotype specific bitscores from across the window BLAST.</p></li>
 </ol>
 </div>
 <div class="section" id="help">
