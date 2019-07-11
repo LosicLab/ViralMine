@@ -7,7 +7,7 @@ As the original purpose of the program was to recover contigs matching the Hepat
 
 To reduce dependencies and program complexity, the software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. *Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!*
 
-Please see the docs for more complete information: [URL TO BE INCLUDED]
+Please see the docs for more complete information: https://viralmine.readthedocs.io/en/latest/
 
 
 ## Downloads and Prerequisites ##
