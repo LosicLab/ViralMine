@@ -18,6 +18,7 @@ viral_db="~/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where b
 contig_size_filter=100 #length flag below which putative viral contigs will be removed  
 gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped (built for HBV & HPV only, currently)
 sample_id="sample-name" # Name you want to give the sample; !! WARNING !! Please note that the underscore character ('_') must NOT be used in the sample_id (a protected class)
+threshold=0.1 #Fractional threshold of the total patient bitscore for which a genotype must exceed to be called as a coinfection type. We highly suggest the 0.1 (10%) default.
 
 if [ $seq_type == "paired" ]
 then
@@ -151,7 +152,7 @@ then
     	done < ${Dir}/inch_assembly/"$l"_tmp.tmp
     	rm ${Dir}/inch_assembly/"$l"_tmp.tmp
     done
-    ## Determine Dominant expressed genotype for given sample, based on sum of bitscores across matching viral contigs:
+    ## 8. Determine Dominant expressed genotype for given sample, based on sum of bitscores across matching viral contigs:
     if [ $gt_virus == "hbv" ]
     then
 		A_scr=$(grep "^A:" ${Dir}/inch_assembly/${sample_id}_scores.txt | cut -d ' ' -f 2 | grep -E '^[0-9]' | paste -sd+ | bc)
@@ -184,21 +185,21 @@ then
 		top_GT=$(printf "$HPV16_scr HPV16\n$HPV18_scr HPV18\n$HPV33_scr HPV33\n$HPV45_scr HPV45\n$HPV31_scr HPV31\n$HPV58_scr HPV58\n$HPV52_scr HPV52\n$HPV35_scr HPV35\n$HPV59_scr HPV59\n$HPV56_scr HPV56\n$HPV51_scr HPV51\n$HPV39_scr HPV39\n$HPV73_scr HPV73\n$HPV68_scr HPV68\n$HPV82_scr HPV82\nNA NA" | sort -nr | head -1 | cut -d ' ' -f 2)
 		echo "$sample_id	$top_GT" >> ${Dir}/inch_assembly/${sample_id}_viral_GT.tsv
 	fi
-fi
 
-## Make sure the Contigs are identifiable by genotype:
-sed -i "s#>>#>>${sample_id}_" ${Dir}/inch_assembly/${sample_id}_scores.txt
+	## Make sure the Contigs are identifiable by genotype:
+	sed -i "s#>>#>>${sample_id}_" ${Dir}/inch_assembly/${sample_id}_scores.txt
 
-## Determine Coninfection Genotypes:
-if [ $gt_virus == "hbv" ]
-then
-	python ViralMine/scripts/HBV_GT_Fractional_Scoring.py -method $method -f ${Dir}/inch_assembly/${sample_id}_scores.txt
-elif [ $gt_virus == "hpv" ]
-then
-	python ViralMine/scripts/HPV_GT_Fractional_Scoring.py -method $method -f ${Dir}/inch_assembly/${sample_id}_scores.txt
+	## Determine Coninfection Genotypes:
+	if [ $gt_virus == "hbv" ]
+	then
+		python ViralMine/scripts/HBV_GT_Fractional_Scoring.py -threshold $threshold -f ${Dir}/inch_assembly/${sample_id}_scores.txt
+	elif [ $gt_virus == "hpv" ]
+	then
+		python ViralMine/scripts/HPV_GT_Fractional_Scoring.py -threshold $threshold -f ${Dir}/inch_assembly/${sample_id}_scores.txt
+	fi
+	mv output_table.tsv ${Dir}/inch_assembly/${sample_id}_GT_frac_table.tsv
+	mv pat_coinfect.tsv ${Dir}/inch_assembly/${sample_id}_viral_Coinf_GT.tsv
 fi
-mv output_table.tsv ${Dir}/inch_assembly/${sample_id}_GT_frac_table.tsv
-mv pat_coinfect.tsv ${Dir}/inch_assembly/${sample_id}_viral_Coinf_GT.tsv
 
 
 
