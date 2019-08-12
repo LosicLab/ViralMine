@@ -10,14 +10,14 @@
 ## contigs (if option specified). All files will be contained within the specified directory (normally the location of your alignment output)
 
 # Parameters:
-Dir="path/to/unmapped_reads.out/" #Path to the location of your alignment output files
+Dir="path/to/unmapped_reads.out" #Path to the location of your alignment output files
 seq_type="paired" # Select "paired" or "single" end sequencing (to select how many fastqs to expect)
-Exisiting_Blastdb="Yes" # No or Yes, to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta. If Yes, "Viral_Genome" field will be ignored
+Exisiting_Blastdb="No" # No or Yes, to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta. If Yes, "Viral_Genome" field will be ignored
 Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
 viral_db="~/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where blast database for viral reference sequences will be output 
 contig_size_filter=100 #length flag below which putative viral contigs will be removed  
 gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped (built for HBV & HPV only, currently)
-sample_id="sample_name" # Name you want to give the sample
+sample_id="sample-name" # Name you want to give the sample; !! WARNING !! Please note that the underscore character ('_') must NOT be used in the sample_id (a protected class)
 
 if [ $seq_type == "paired" ]
 then
@@ -185,3 +185,20 @@ then
 		echo "$sample_id	$top_GT" >> ${Dir}/inch_assembly/${sample_id}_viral_GT.tsv
 	fi
 fi
+
+## Make sure the Contigs are identifiable by genotype:
+sed -i "s#>>#>>${sample_id}_" ${Dir}/inch_assembly/${sample_id}_scores.txt
+
+## Determine Coninfection Genotypes:
+if [ $gt_virus == "hbv" ]
+then
+	python ViralMine/scripts/HBV_GT_Fractional_Scoring.py -method $method -f ${Dir}/inch_assembly/${sample_id}_scores.txt
+elif [ $gt_virus == "hpv" ]
+then
+	python ViralMine/scripts/HPV_GT_Fractional_Scoring.py -method $method -f ${Dir}/inch_assembly/${sample_id}_scores.txt
+fi
+mv output_table.tsv ${Dir}/inch_assembly/${sample_id}_GT_frac_table.tsv
+mv pat_coinfect.tsv ${Dir}/inch_assembly/${sample_id}_viral_Coinf_GT.tsv
+
+
+

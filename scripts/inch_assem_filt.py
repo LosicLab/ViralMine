@@ -1,4 +1,4 @@
-#!/hpc/packages/minerva-common/python/3.6.2/bin/python
+#!/bin/python
 
 # ./inch_assem_filt.py -f [path_to_file] -s [length filter]
 # This filters inchworm assembly contigs (or any fasta in 2 line format) less than X basepairs (limit is modifiable)

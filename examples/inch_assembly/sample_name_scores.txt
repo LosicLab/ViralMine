@@ -1,4 +1,4 @@
->>a31;7 total_counts: 7441 Seed: 6 K: 25 length: 1046
+>>sample-name_a31;7 total_counts: 7441 Seed: 6 K: 25 length: 1046
 A: 
 B: 
 C: 456987
@@ -6,7 +6,7 @@ D:
 E: 
 F: 
 G: 
->>a58;3 total_counts: 576 Seed: 2 K: 25 length: 236
+>>sample-name_a58;3 total_counts: 576 Seed: 2 K: 25 length: 236
 A: 
 B: 
 C: 9005
