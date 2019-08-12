@@ -3,7 +3,7 @@ ViralMine
 
 The ViralMine pipeline is a collection of bioinformatic tools designed to process the unmapped reads from RNA-Seq or DNA-Seq aligners and recover large viral sequence contigs of interest, as specified by the user. 
 
-As the original purpose of the program was to recover contigs matching the Hepatitis B virus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi
+As the original purpose of the program was to recover contigs matching the Hepatitis B virus and Human papillomavirus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi
 
 To reduce dependencies and program complexity, the software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. *Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!*
 
@@ -33,7 +33,7 @@ Run parameters are located in the first code block of the `ViralMine.sh` file, a
 Files Required:
 
 ```
-1. Viral reference sequences in fasta format (or, can use the provided HBVdb fasta or BLASTdb [see 'HBV_Ref_dbs'])
+1. Viral reference sequences in fasta format (or, can use the provided HBVdb/HPVdb fasta or BLASTdbs [see 'HBV_Ref_dbs' and 'HPV_Ref_dbs'])
 2. Unmapped reads in fastq format (eg. for single end STAR alignments, these will be 'Unmapped.reads.out'. Check your aligner manual for more information)
 ```
 
@@ -60,14 +60,15 @@ Each step of the pipeline will produce several output files, and depending on th
 
 1. `viral_matched_contigs.fa`: A fasta file containing all the inchworm contigs that matched viral reference sequences
 2. `viral_alignment.tsv`: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.
-3. `[sample_name]_scores.txt`: Will only be generated if the HBV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.
-4. `[sample_id]_viral_GT.tsv`: Will only be generated if the HBV genotyping flag has been selected. This contains the calculated dominant viral genotype given the BLAST results. 
+3. `[sample_id]_scores.txt`: Will only be generated if the HBV/HPV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.
+4. `[sample_id]_viral_GT.tsv`: Will only be generated if the HBV/HPV genotyping flag has been selected. This will contain the calculated dominant viral genotype for the patient's infection by summation of the bitscores across contigs.
+5. `[sample_id]_viral_Coinf_GT.tsv`: Will only be generated if the HBV/HPV genotyping flag has been selected. This will contain a list of the viral genotypes that the patient's tumor is coinfected with. It is NOT ordered. 
 
 ## Known Issues ##
 
 1. Errors will be returned when there are no viable contigs produced by inchworm or after filtering, as no further steps can be completed. Additional error will be thrown if directory structures are not maintained -- for this reason *it is important to use absolute paths where possible in the pipeline parameters!*
 
-2. Viral genotyping of HBV is tricky, and is dependent upon the viral reference database you are using. Current runs with the software have shown that Refseq and HBVdb sequences are similar enough that overall viral genotype should be called consistently, but bitscore/mixed genotype calls will differ depending on reference source. 
+2. Viral genotyping of Hepatitis B and Human papillomavirus is tricky, and is dependent upon the viral reference database you are using. Current runs with the software have shown that Refseq and HBVdb sequences are similar enough that overall viral genotype should be called consistently, but bitscore/coninfected genotype calls will most likely differ slightly depending on reference source, especially if infection is close to the detection threshold. 
 
 
-(Current version: v0.3)
+(Current version: v0.4)

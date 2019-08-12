@@ -11,7 +11,7 @@ The **ViralMine** pipeline is a collection of bioinformatic tools designed to pr
 
 To reduce dependencies and program complexity, this software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. *Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!* Please see your aligner-of-choice's manual for how to do this.
 
-As the original purpose of the program was to recover contigs matching the Hepatitis B virus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi
+As the original purpose of the program was to recover contigs matching the Hepatitis B virus and Human Papillomavirus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi
 
 
 Installation
@@ -66,6 +66,7 @@ Setup: BLAST db
 
 If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes `A, B, C, D, F,` and `G` from the HBVdb reference (https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex) and included in the **ViralMine** download (see the ``HBV_Ref_dbs/`` directory). The script defualt is to pointed to this location.
 
+If you are mining HPV viral reads, a nucleotide reference database is also available (``HPV_Ref_dbs/``) that includes the 15 oncogenic genotypes associated with the vast majority of cervical cancers (*Castellsague, X. Gynecol Oncol. 2008*). Genome reference sequences for these genotypes were compiled from the most recent published sequence by RefSeq.
 
 
 Setup: ViralMine parameter configuration:
@@ -81,8 +82,9 @@ Setup: ViralMine parameter configuration:
 	Viral_Genome="path/to/input.genome.fa" 
 	viral_db="path/to/viral/blastn_db/viral.db"
 	contig_size_filter=200  
-	gt_virus=1
-	sample_id="sample_name" 
+	gt_virus="hbv"
+	sample_id="sample_name"
+	threshold=0.1 
 	
 
 A full list of the parameters and their options is discussed in the table below (see **Parameter Explanations**).
@@ -112,12 +114,13 @@ Parameter Explanations
 
 :``Dir``:	Directory location of the unmapped reads file(s), as well as the location where the output files will be published. It is highly recommended that the absolute path be used.
 :``seq_type``:	Either "paired" (default) or "single". Flag used to specify whether paired or single-ended sequencing was used, and to specify how many unmapped reads files the script should expect.
-:``Exisiting_Blastdb``:	Either 0 or 1 (No or Yes). This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is 0, as the default HBV Reference database has been included in the ViralMine download.
+:``Exisiting_Blastdb``:	Either "No" or "Yes". This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is Yes, as the default HBV Reference database has been included in the ViralMine download.
 :``Viral_Genome``:	Filepath to fasta containing viral reference sequences to build a new nucleotide BLAST database. Will be ignored it "Exisiting_Blastdb" is 1.
 :``viral_db``:	Path to either existing viral reference BLASTdb OR path to where the viral database should be created.
 :``contig_size_filter``:	Integer value, specifying the smallest contig size to keep when aligning agains the viral references. Default size is 100bp (what we have found to work well for HBV).
-:``gt_virus``:	Flag for running contig genotyping, either 0 or 1 (No or Yes). **Note** this should ONLY be run if you are trying to genotype HBV contigs! This will most likely fail or provide useless results for other viruses. Default is 1, as the expected default reference database is HBV. 
+:``gt_virus``:	Flag for running contig genotyping, either "hbv","hpv", or "none". **Note** this should ONLY be run if you are trying to genotype HBV or HPV contigs with the included reference databases! This will most likely fail or provide useless results for other viruses. Default is "hbv", as the expected default reference database is HBV. 
 :``sample_id``:	Sample name or sample ID. This will be used to name the genotyping outfile.
+:``threshold``:	Fraction of the total viral bitscore for a patient that must be exceeded for a given genotype of HBV/HPV to be included in the list of coinfections in the coinfection output file. The default is 0.1 or 10% of the bitscore. Will only be used if Genotyping is attempted.
 
 
 Output Files
@@ -127,8 +130,9 @@ Each step of the pipeline will produce several output files, and depending on th
 
 1. ``viral_matched_contigs.fa``: A fasta file containing all the inchworm contigs that matched viral reference sequences
 2. ``viral_alignment.tsv``: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.
-3. ``[sample_id]_scores.txt``: Will only be generated if the HBV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype the HBV of a patient, or characterize a mixed genotype.
-4. ``[sample_id]_scores.txt``: Will only be generated if the HBV genotyping flag has been selected. This contains the dominant viral genotype based on the combined window BLAST bitscores across the patient viral contigs. For HBV, this will be a letter A-G. 
+3. ``[sample_id]_scores.txt``: Will only be generated if the HBV or HPV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype tumor viral infection of a patient, or characterize a mixed genotype.
+4. ``[sample_id]_viral_GT.tsv``: Will only be generated if the genotyping flag is on for HPV or HBV. This will contain the calculated dominant genotype for the tumor across patient contigs by summation of all genotype specific bitscores from across the window BLAST.
+5. ``[sample_id]_viral_Coinf_GT.tsv``: Will only be generated if the HBV/HPV genotyping flag has been selected. This will contain a comma separated list of the viral genotypes that the patient's tumor is coinfected with. It is NOT ordered. If only one genotype is listed for a patient, this indicates that only one genotype passed the coinfection threshold.
 
 
 HELP
