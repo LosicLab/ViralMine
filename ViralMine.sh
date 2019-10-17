@@ -9,16 +9,19 @@
 ## The outputs of this tool include matching viral contigs for each sample, BLAST outputs for contig matches, and genotype scores for the matched
 ## contigs (if option specified). All files will be contained within the specified directory (normally the location of your alignment output)
 
-# Parameters:
-Dir="path/to/unmapped_reads.out" #Path to the location of your alignment output files
+## Parameters:
+Dir="path/to/unmapped_reads" #Path to the location of your alignment output files
+sample_id="sample-name" # Name you want to give the sample; !! WARNING !! Please note that the underscore character ('_') must NOT be used in the sample_id (a protected class)
+
 seq_type="paired" # Select "paired" or "single" end sequencing (to select how many fastqs to expect)
 Exisiting_Blastdb="No" # No or Yes, to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta. If Yes, "Viral_Genome" field will be ignored
 Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
-viral_db="~/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where blast database for viral reference sequences will be output 
-contig_size_filter=100 #length flag below which putative viral contigs will be removed  
+viral_db="~/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where database for viral reference sequences will be output 
+contig_size_filter=100 # length flag below which putative viral contigs will be removed  
 gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped (built for HBV & HPV only, currently)
-sample_id="sample-name" # Name you want to give the sample; !! WARNING !! Please note that the underscore character ('_') must NOT be used in the sample_id (a protected class)
 threshold=0.1 #Fractional threshold of the total patient bitscore for which a genotype must exceed to be called as a coinfection type. We highly suggest the 0.1 (10%) default.
+gene_exp="Yes" # Indicate whether viral gene level read count matricies should be produced ("Yes" or "No"); if gt_virus flag is anything but "hpv" or "hbv", an error will be returned. MUST have gt_virus flag on to use.
+viral_gene_db="~/HBV_Ref_dbs/HBV_gene/HBV_gene_db/GenesHBV" # nucl BLAST db for matching viral contigs to gene regions OR where database for viral gene reference sequences is (user generated)
 
 if [ $seq_type == "paired" ]
 then
@@ -199,7 +202,56 @@ then
 	fi
 	mv output_table.tsv ${Dir}/inch_assembly/${sample_id}_GT_frac_table.tsv
 	mv pat_coinfect.tsv ${Dir}/inch_assembly/${sample_id}_viral_Coinf_GT.tsv
+
+elif [ $gt_virus != "hbv" ] || [ $gt_virus != "hpv" ]
+then
+	echo "Error: viral genotyping selection not supported ('none', 'hpv', hbv'). Please check parameters."
 fi
+
+if [ $gt_virus != "none" ] && [ $gene_exp == "Yes"]
+then
+	if [ $gt_virus == "hbv" ]
+	then
+		blastn -query ${Dir}/inch_assembly/viral_matched_contigs.fa -db ${viral_gene_db} -outfmt 6 -max_target_seqs 3 -evalue 1e-8 -out ${Dir}/inch_assembly/gene_viral_alignment.tsv
+		cat ${Dir}/inch_assembly/gene_viral_alignment.tsv | while read j; do
+			Vgene_reg=$(echo $j | cut -d ' ' -f2,9,10 | cut -d '-' -f2 | tr ' ' ':' | sed "s#:# region:#")
+			contig=$(echo $j | cut -d ' ' -f1)
+			qsrt=$(echo $j | cut -d ' ' -f 7)
+			qend=$(echo $j | cut -d ' ' -f 8)
+			grep -A1 $contig ${Dir}/inch_assembly/viral_matched_contigs.fa > ${Dir}/inch_assembly/tmp.tmp
+			echo -e ">Gene:${Vgene_reg}\n$(blastn -query ${Dir}/inch_assembly/tmp.tmp -query_loc $qsrt-$qend -db ${viral_db} -outfmt 6 -max_target_seqs 3 -evalue 1e-8 | cut -f 2,3 | cut -d '.' -f 2 | sed "s#,##" | cut -d '_' -f 2)" >> ${Dir}/inch_assembly/gene_region_identities.txt
+			echo -e ">${Vgene_reg}\n$(cat ${Dir}/inch_assembly/tmp.tmp | tail -1 | cut -c$qsrt-$qend)" >> ${Dir}/inch_assembly/viral_genes.fa
+			echo -e "$(echo ${Vgene_reg} | cut -c1-3)\t$(cat ${Dir}/inch_assembly/tmp.tmp | head -1 | cut -d ' ' -f 3)" >> ${Dir}/inch_assembly/ReadsPerViralGene.tmp
+			rm ${Dir}/inch_assembly/tmp.tmp
+		done
+		sort ${Dir}/inch_assembly/ReadsPerViralGene.tmp | uniq | awk '{b[$1]+=$2} END { for (i in b) { print i,"\t",b[i] } }' >> ${Dir}/inch_assembly/${sample_id}_ReadsPerViralGene.tab
+		rm ${Dir}/inch_assembly/ReadsPerViralGene.tmp
+
+	elif [ $gt_virus == "hpv" ]
+	then
+		blastn -query ${Dir}/inch_assembly/viral_matched_contigs.fa -db ${viral_gene_db} -outfmt 6 -max_target_seqs 3 -evalue 1e-8 -out ${Dir}/inch_assembly/gene_viral_alignment.tsv
+		cat ${Dir}/inch_assembly/gene_viral_alignment.tsv | while read j; do
+			Vgene_reg=$(echo $j | cut -d ' ' -f2,9,10 | cut -d '-' -f2 | tr ' ' ':' | sed "s#:# region:#")
+			contig=$(echo $j | cut -d ' ' -f1)
+			qsrt=$(echo $j | cut -d ' ' -f 7)
+			qend=$(echo $j | cut -d ' ' -f 8)
+			grep -A1 $contig ${Dir}/inch_assembly/viral_matched_contigs.fa > ${Dir}/inch_assembly/tmp.tmp
+			echo -e ">Gene:${Vgene_reg}\n$(blastn -query ${Dir}/inch_assembly/tmp.tmp -query_loc $qsrt-$qend -db ${viral_db} -outfmt 6 -max_target_seqs 3 -evalue 1e-8 | cut -f 2,3 | cut -d '.' -f 2 | sed "s#,##" | cut -d '_' -f 2)" >> ${Dir}/inch_assembly/gene_region_identities.txt
+			echo -e ">${Vgene_reg}\n$(cat ${Dir}/inch_assembly/tmp.tmp | tail -1 | cut -c$qsrt-$qend)" >> ${Dir}/inch_assembly/viral_genes.fa
+			echo -e "$(echo ${Vgene_reg} | cut -c1-3)\t$(cat ${Dir}/inch_assembly/tmp.tmp | head -1 | cut -d ' ' -f 3)" >> ${Dir}/inch_assembly/ReadsPerViralGene.tmp
+			rm ${Dir}/inch_assembly/tmp.tmp
+		done
+		sort ${Dir}/inch_assembly/ReadsPerViralGene.tmp | uniq | awk '{b[$1]+=$2} END { for (i in b) { print i,"\t",b[i] } }' >> ${Dir}/inch_assembly/${sample_id}_ReadsPerViralGene.tab
+		rm ${Dir}/inch_assembly/ReadsPerViralGene.tmp
+
+	elif [ $gt_virus != "hpv" ] || [ $gt_virus != "hbv" ]
+	then
+		echo "Error: viral genotyping selection not supported ('none', 'hpv', hbv'). Please check parameters."
+	fi
+fi
+
+
+
 
 
 
