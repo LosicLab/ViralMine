@@ -14,14 +14,34 @@ Dir="path/to/unmapped_reads" #Path to the location of your alignment output file
 sample_id="sample-name" # Name you want to give the sample; !! WARNING !! Please note that the underscore character ('_') must NOT be used in the sample_id (a protected class)
 
 seq_type="paired" # Select "paired" or "single" end sequencing (to select how many fastqs to expect)
-Exisiting_Blastdb="No" # No or Yes, to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta. If Yes, "Viral_Genome" field will be ignored
+Exisiting_Blastdb="Yes" # No or Yes, to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta. If Yes, "Viral_Genome" field will be ignored
 Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
 viral_db="~/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where database for viral reference sequences will be output 
 contig_size_filter=100 # length flag below which putative viral contigs will be removed  
-gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped (built for HBV & HPV only, currently)
+
+gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped. **MUST USE INCLUDED HPV/HBV REFERENCE DBs ONLY!!** (built for HBV & HPV only, currently).
 threshold=0.1 #Fractional threshold of the total patient bitscore for which a genotype must exceed to be called as a coinfection type. We highly suggest the 0.1 (10%) default.
+
 gene_exp="Yes" # Indicate whether viral gene level read count matricies should be produced ("Yes" or "No"); if gt_virus flag is anything but "hpv" or "hbv", an error will be returned. MUST have gt_virus flag on to use.
 viral_gene_db="~/HBV_Ref_dbs/HBV_gene/HBV_gene_db/GenesHBV" # nucl BLAST db for matching viral contigs to gene regions OR where database for viral gene reference sequences is (user generated)
+
+
+######################################################
+# Error handling:
+
+if [[ ${sample_id} =~ '_' ]] || [[ ${sample_id} =~ ' ' ]]
+then
+	echo "Error! sample_id contains a protected class character or a space; please fix this and try again"
+	exit 1
+fi
+
+if [ $gt_virus != "hbv" ] || [ $gt_virus != "hpv" ] || [ $gt_virus != 'none' ]
+then
+	echo "Error! viral genotyping selection not supported ('none', 'hpv', hbv'). Please check parameters and try again"
+	exit 1
+fi
+
+######################################################
 
 if [ $seq_type == "paired" ]
 then
@@ -83,7 +103,7 @@ echo $"Viral sequence search complete. See viral_matched_contigs.fa"
 
 if [ $gt_virus != "none" ]
 then
-	## 7. Use BLAST to search matched viral contigs and determine GT using viral genotype database (HBV)
+	## 7. Use BLAST to search matched viral contigs and determine GT using viral genotype database
 	cat ${Dir}/inch_assembly/contig_matches.out | while read l; do
 		grep -A1 "$l" ${Dir}/inch_assembly/viral_matched_contigs.fa | grep -v "^--" > ${Dir}/inch_assembly/"$l"_tmp.tmp
 		while read -r ONE; do
@@ -202,10 +222,6 @@ then
 	fi
 	mv output_table.tsv ${Dir}/inch_assembly/${sample_id}_GT_frac_table.tsv
 	mv pat_coinfect.tsv ${Dir}/inch_assembly/${sample_id}_viral_Coinf_GT.tsv
-
-elif [ $gt_virus != "hbv" ] || [ $gt_virus != "hpv" ]
-then
-	echo "Error: viral genotyping selection not supported ('none', 'hpv', hbv'). Please check parameters."
 fi
 
 if [ $gt_virus != "none" ] && [ $gene_exp == "Yes"]
@@ -243,10 +259,6 @@ then
 		done
 		sort ${Dir}/inch_assembly/ReadsPerViralGene.tmp | uniq | awk '{b[$1]+=$2} END { for (i in b) { print i,"\t",b[i] } }' >> ${Dir}/inch_assembly/${sample_id}_ReadsPerViralGene.tab
 		rm ${Dir}/inch_assembly/ReadsPerViralGene.tmp
-
-	elif [ $gt_virus != "hpv" ] || [ $gt_virus != "hbv" ]
-	then
-		echo "Error: viral genotyping selection not supported ('none', 'hpv', hbv'). Please check parameters."
 	fi
 fi
 
