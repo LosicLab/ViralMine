@@ -18,10 +18,30 @@ Exisiting_Blastdb="Yes" # No or Yes, to indicate if you will need to generate a 
 Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
 viral_db="~/ViralMine/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where database for viral reference sequences will be output 
 contig_size_filter=100 # length flag below which putative viral contigs will be removed  
-gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped (built for HBV & HPV only, currently)
+
+gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped. **MUST USE INCLUDED HPV/HBV REFERENCE DBs ONLY!!** (built for HBV & HPV only, currently).
 threshold=0.1 #Fractional threshold of the total patient bitscore for which a genotype must exceed to be called as a coinfection type. We highly suggest the 0.1 (10%) default.
+
 gene_exp="Yes" # Indicate whether viral gene level read count matricies should be produced ("Yes" or "No"); if gt_virus flag is anything but "hpv" or "hbv", an error will be returned. MUST have gt_virus flag on to use.
 viral_gene_db="~/ViralMine/HBV_Ref_dbs/HBV_gene/HBV_gene_db/GenesHBV" # nucl BLAST db for matching viral contigs to gene regions OR where database for viral gene reference sequences is (user generated)
+
+
+######################################################
+# Error handling:
+
+if [[ ${sample_id} =~ '_' ]] || [[ ${sample_id} =~ ' ' ]]
+then
+	echo "Error! sample_id contains a protected class character or a space; please fix this and try again"
+	exit 1
+fi
+
+if [ $gt_virus != "hbv" ] || [ $gt_virus != "hpv" ] || [ $gt_virus != 'none' ]
+then
+	echo "Error! viral genotyping selection not supported ('none', 'hpv', hbv'). Please check parameters and try again"
+	exit 1
+fi
+
+######################################################
 
 if [ $seq_type == "paired" ]
 then
