@@ -28,7 +28,9 @@ TRINITY (require 2.8.x or later; see here: https://github.com/trinityrnaseq/trin
 
 ## Quick Start Guide ##
 
-Clone this repository from github; before running the pipeline for the first time you will need to adjust the `vm_loc` parameter in `parameters.txt` to point to the location where the repository has been cloned on your local machine.
+To use ViralMine, download a clone of this repositiory (git clone https://github.com/LosicLab/ViralMine.git) and add the `ViralMine` folder to your PATH (you can do this in linux/MacOS by modifying your .bashrc file, with the command `export PATH=$PATH:path/to/ViralMine`)
+
+Before running the pipeline for the first time you will need to adjust the `vm_loc` parameter in `parameters.txt` to point to the location where the repository has been cloned on your local machine.
 
 All run parameters are located in the `parameters.txt` file. This file should be modified to point to the required alignment directory, viral sequence fasta, viral BLAST database output directory, and more. Detailed parameter descriptions can be found in the docs (See above).
 
