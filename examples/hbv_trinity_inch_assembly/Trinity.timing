@@ -1,0 +1,5 @@
+Statistics:
+===========
+Trinity Version:      Trinity-v2.9.0
+Compiler:             GCC
+Trinity Parameters:   --seqType fq --max_memory 40G --left /home/bubiea01/Documents/Git/ViralMine/examples/Unmapped.out.mate1 --right /home/bubiea01/Documents/Git/ViralMine/examples/Unmapped.out.mate2 --CPU 6 --no_run_chrysalis --trimmomatic --no_bowtie --output /home/bubiea01/Documents/Git/ViralMine/examples/trinity_inch_assembly

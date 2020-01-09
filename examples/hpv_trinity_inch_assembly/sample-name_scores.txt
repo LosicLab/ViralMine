@@ -1,0 +1,80 @@
+>>sample-name_>a1250;2 total_counts: 226 Seed: 2 K: 25 length: 123
+HPV16: 
+HPV18: 
+HPV33: 
+HPV45: 550.2
+HPV31: 
+HPV58: 
+HPV52: 
+HPV35: 
+HPV59: 
+HPV56: 
+HPV51: 
+HPV39: 
+HPV73: 
+HPV68: 
+HPV82: 
+>>sample-name_>a1269;2 total_counts: 220 Seed: 5 K: 25 length: 120
+HPV16: 
+HPV18: 492.3
+HPV33: 
+HPV45: 567.2
+HPV31: 
+HPV58: 
+HPV52: 
+HPV35: 
+HPV59: 
+HPV56: 
+HPV51: 
+HPV39: 
+HPV73: 
+HPV68: 
+HPV82: 
+>>sample-name_>a1498;15 total_counts: 11827 Seed: 11 K: 25 length: 814
+HPV16: 
+HPV18: 17556.2
+HPV33: 
+HPV45: 51378.2
+HPV31: 
+HPV58: 
+HPV52: 
+HPV35: 
+HPV59: 
+HPV56: 
+HPV51: 
+HPV39: 
+HPV73: 
+HPV68: 
+HPV82: 
+>>sample-name_>a354;2 total_counts: 216 Seed: 3 K: 25 length: 150
+HPV16: 
+HPV18: 356
+HPV33: 
+HPV45: 875.0
+HPV31: 
+HPV58: 
+HPV52: 
+HPV35: 
+HPV59: 
+HPV56: 
+HPV51: 
+HPV39: 
+HPV73: 
+HPV68: 
+HPV82: 
+>>sample-name_>a583;11 total_counts: 9316 Seed: 7 K: 25 length: 845
+HPV16: 
+HPV18: 7227
+HPV33: 
+HPV45: 58250.8
+HPV31: 
+HPV58: 
+HPV52: 
+HPV35: 
+HPV59: 
+HPV56: 
+HPV51: 
+HPV39: 
+HPV73: 
+HPV68: 
+HPV82: 

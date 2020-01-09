@@ -1,0 +1,48 @@
+>Gene:P region:2532:1740
+478
+721
+721
+>Gene:P region:2538:1746
+478
+721
+721
+>Gene:P region:2532:1740
+478
+721
+721
+>Gene:P region:1308:1168
+000
+000
+000
+>Gene:S region:245:105
+000
+000
+000
+>Gene:PreS2 region:410:270
+000
+000
+000
+>Gene:P region:1425:1660
+729
+729
+729
+>Gene:S region:362:597
+729
+729
+729
+>Gene:PreS2 region:527:762
+729
+729
+729
+>Gene:P region:1669:1760
+826
+739
+739
+>Gene:S region:606:681
+684
+649
+368
+>Gene:PreS2 region:771:846
+684
+649
+368

@@ -1,0 +1,2 @@
+/usr/local/bin/trinityrnaseq-v2.9.0/Inchworm/bin//inchworm --kmers jellyfish.kmers.25.asm.fa --run_inchworm -K 25 --monitor 1   --DS  --num_threads 6  --PARALLEL_IWORM  -L 25  --no_prune_error_kmers  > /home/bubiea01/Documents/Git/ViralMine/examples/trinity_inch_assembly/inchworm.DS.fa.tmp
+mv /home/bubiea01/Documents/Git/ViralMine/examples/trinity_inch_assembly/inchworm.DS.fa.tmp /home/bubiea01/Documents/Git/ViralMine/examples/trinity_inch_assembly/inchworm.DS.fa

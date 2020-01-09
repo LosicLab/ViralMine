@@ -96,7 +96,7 @@ for pat in patients:
 			nscores = gt_normalization(cscores,clen)
 			for key in nscores:
 				tot_nscores[key] = (tot_nscores[key]) + nscores[key]
-			print(nscores)
+			#print(nscores)
 
 	elif method is 'rig':
 		for ctg in pat_contig_set:
@@ -104,10 +104,10 @@ for pat in patients:
 			nscores = gt_frac_score(cscores)
 			for key in nscores:
 				tot_nscores[key] = (tot_nscores[key]) + nscores[key]
-			print(nscores)
+			#print(nscores)
 
 	total_nscore_all = sum(tot_nscores.values())
-	print(total_nscore_all)
+	#print(total_nscore_all)
 	for key in tot_nscores:
 		tot_nscores[key] = round((tot_nscores[key])/total_nscore_all, 4)
 

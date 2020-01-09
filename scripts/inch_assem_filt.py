@@ -15,8 +15,8 @@ def get_arguments():
 args = get_arguments()	
 
 def filename_creation(directory):
-	filename = directory.strip('\n') + '/inchworm.K25.L25.DS.fa'
-	outfile = directory.strip('\n') + '/inchworm.K25.L25.len_filtered.fa'
+	filename = directory.strip('\n') + '/inchworm.DS.fa'
+	outfile = directory.strip('\n') + '/inchworm.K25.L25.DS.filtered.fa'
 	return filename, outfile
 
 def contig_filter(filename, outfile, filter):

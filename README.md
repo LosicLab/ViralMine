@@ -20,35 +20,38 @@ Additionally, you will need to have the following programs installed and added t
 BLAST (recommend latest version)
 python (require v3.6.x or later)
 cd-hit (recommend v4.6.x or later)
-TRINITY (see here: https://github.com/trinityrnaseq/trinityrnaseq/wiki)
+TRINITY (require 2.8.x or later; see here: https://github.com/trinityrnaseq/trinityrnaseq/wiki)
 ```
 
-**Note**: because of the large memory requirements of TRINITY's inchworm assembler, it is *highly* recommended that you run ViralMine on a computing cluster with at least 40GB of RAM. If this is not possible, you will need to adjust the default JM memory parameters in the inchworm step of the `ViralMine.sh` script.   
+**Note**: because of the large memory requirements of TRINITY's inchworm assembler, it is *highly* recommended that you run ViralMine on a computing cluster with at least 40GB of RAM. If this is not possible, you will need to adjust the default `max_memory` parameters in the inchworm step of the `ViralMine.sh` script, depending on the size of your unmapped reads file, or you may experience substantial slowdowns or errors.
 
 
 ## Quick Start Guide ##
 
-Run parameters are located in the first code block of the `ViralMine.sh` file, and should be modified to point to the required alignment directory, viral sequence fasta, viral BLAST database output directory, and more. Detailed parameter descriptions can be found in the docs (See above).
+Clone this repository from github; before running the pipeline for the first time you will need to adjust the `vm_loc` parameter in `parameters.txt` to point to the location where the repository has been cloned on your local machine.
+
+All run parameters are located in the `parameters.txt` file. This file should be modified to point to the required alignment directory, viral sequence fasta, viral BLAST database output directory, and more. Detailed parameter descriptions can be found in the docs (See above).
 
 Files Required:
 
 ```
 1. Viral reference sequences in fasta format (or, can use the provided HBVdb/HPVdb fasta or BLASTdbs [see 'HBV_Ref_dbs' and 'HPV_Ref_dbs'])
-2. Unmapped reads in fastq format (eg. for single end STAR alignments, these will be 'Unmapped.reads.out'. Check your aligner manual for more information)
+2. Unmapped reads in fastq format (eg. for single end STAR alignments, these will be 'Unmapped.out.mate'. Check your aligner manual for more information)
+3. ViralMine parameters file
 ```
 
-Once you have set your parameters in the script file, execute the pipeline (for single end reads) using:
+Once you have set your parameters in the `parameters.txt` file, execute the pipeline (for single end reads) using:
 
 ```
-ViralMine.sh Unmapped.reads.out
+ViralMine.sh parameters.txt Unmapped.out.mate1 > VM_log.out
 ```
 
-Replacing `Unmapped.reads.out` with the file name of the unmapped reads file depending on your aligner.
+Replacing `parameters.txt` with the name of the parameters file to be used (you can change the file name to allow for multi/parallel execution of samples), and `Unmapped.reads.out` with the file name of the unmapped reads file depending on your aligner.
 
 For paired end sequencing, just specify the additional mate pair:
 
 ```
-ViralMine.sh Unmapped.reads.out1 Unmapped.reads.out2
+ViralMine.sh parameters.txt Unmapped.out.mate1 Unmapped.out.mate2 > VM_log.out
 ```
 
 Please see the docs for additional information.
@@ -56,7 +59,7 @@ Please see the docs for additional information.
 
 ## Output Files ##
 
-Each step of the pipeline will produce several output files, and depending on the size of your unmapped read fastqs, you should expect to use 5-10GB of storage. Key output files are summarized below:
+Each step of the pipeline will produce several output files, and depending on the size of your unmapped read fastqs, you should expect to use 5-10GB of storage. Files will be located in the directory of your input, unmapped reads files, in a directory `[Sample_id]_trinity_inch_assembly`. Key output files are summarized below:
 
 1. `viral_matched_contigs.fa`: A fasta file containing all the inchworm contigs that matched viral reference sequences
 2. `viral_alignment.tsv`: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.
@@ -74,4 +77,4 @@ Each step of the pipeline will produce several output files, and depending on th
 3. Viral gene expression calculations rely on the included HBV and HPV gene nucleotide databases in the `HBV_Ref_dbs` and `HPV_Ref_dbs` directories. We hope to allow users in the future to generate and use their own gene databases, such as possible for the viral matching step, but due to specific database header requirements in the script functionality, the databases included in the ViralMine download must be used at this time, and thus are restricted to HBV/HPV only.
 
 
-(Current version: v0.5)
+(Current version: v0.9)

@@ -119,7 +119,7 @@ for pat in patients:
 #print(viral_gtness)
 
 with open('./output_table.tsv','w') as out:
-	out.write("Patient\tHPV16\tHPV18\tHPV33\tHPV45\tHPV31\tHPV58\tHPV52\tHPV35\tHPV59\tHPV56\tHPV51\tHPV39\tHPV73\tHPV68\tHPV82")
+	out.write("Patient\tHPV16\tHPV18\tHPV33\tHPV45\tHPV31\tHPV58\tHPV52\tHPV35\tHPV59\tHPV56\tHPV51\tHPV39\tHPV73\tHPV68\tHPV82\n")
 	for pat in patients:
 		vals = []
 		for key in viral_gtness[pat]:

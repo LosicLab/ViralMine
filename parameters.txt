@@ -1,0 +1,24 @@
+### ViralMine Parameters file ###
+
+#### Should only have to change once on install! ####
+## please navigate to the downloaded ViralMine repo, run `pwd` and copy the output here:
+vm_loc="/path/to/ViralMine" #path to ViralMine download location on your machine/cluster. Please use absolute path if possible (end without '/').
+
+#######################
+##### PARAMETERS: #####
+#######################
+
+Dir="/path/to/ViralMine/examples" #Path to the location of your alignment output files (end without '/')
+sample_id="sample-name" # Name you want to give the sample; !! WARNING !! Please note that the underscore character ('_') must NOT be used in the sample_id (a protected class)
+
+seq_type="paired" # Select "paired" or "single" end sequencing (to select how many fastqs to expect)
+Exisiting_Blastdb="Yes" # No or Yes, to indicate if you will need to generate a new viral reference nucleotide database from a reference fasta. If Yes, "Viral_Genome" field will be ignored
+Viral_Genome="path/to/input.genome.fa" # Input fasta containing viral reference sequence(s)
+viral_db="/path/to/ViralMine/HBV_Ref_dbs/HBVdb/HBVdb_all_gt" # Reference nucl BLAST db OR where database for viral reference sequences will be output 
+contig_size_filter=100 # length flag below which putative viral contigs will be removed  
+
+gt_virus="hbv" # virus of interest ("hpv", "hbv", or "none"), used to specify if viral contigs should be genotyped. **MUST USE INCLUDED HPV/HBV REFERENCE DBs ONLY!!** (built for HBV & HPV only, currently).
+threshold=0.1 #Fractional threshold of the total patient bitscore for which a genotype must exceed to be called as a coinfection type. We highly suggest the 0.1 (10%) default.
+
+gene_exp="No" # Indicate whether viral gene level read count matricies should be produced ("Yes" or "No"); if gt_virus flag is anything but "hpv" or "hbv", an error will be returned. MUST have gt_virus flag on to use.
+viral_gene_db="/path/to/ViralMine/HBV_Ref_dbs/HBV_gene_db/GenesHBV" # nucl BLAST db for matching viral contigs to gene regions (Currently restricted to HPV/HBV, and must use generated DB)
