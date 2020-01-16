@@ -41,11 +41,12 @@
 <p>The <strong>ViralMine</strong> pipeline is a collection of bioinformatic tools designed to process the unmapped reads from RNA-Seq or DNA-Seq aligners and recover large viral sequence contigs of interest, as specified by the user.</p>
 <p>To reduce dependencies and program complexity, this software currently requires the user to have already aligned their sequencing reads using STAR, HISAT2, bwa, etc. <em>Please be sure to adjust your aligner parameters to keep Unmapped reads in distinct output(s)!</em> Please see your aligner-of-choice’s manual for how to do this.</p>
 <p>As the original purpose of the program was to recover contigs matching the Hepatitis B virus and Human Papillomavirus, additional functionality for genotyping found viral contigs has been included, using a similar method to the NCBI virus genotyping web tool: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi">https://www.ncbi.nlm.nih.gov/projects/genotyping/formpagex.cgi</a></p>
+<p>Additionally, <strong>ViralMine</strong> can generate putative single-virus coinfections for HBV and HPV infected samples, and can produce viral gene expression counts (supporting reads) for recovered viral sequences without additional steps.</p>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p><strong>ViralMine</strong> is designed to be run from the MacOS command line or linux shell environment, an uses a combination of Bash and python.</p>
-<p>Because of the large RAM requirements of component programs for this pipeline (TRINITY’s Inchworm) it is <em>highly</em> recommended that <em>ViralMine</em> be installed on a compute cluster or a machine with at least 30-40GB of RAM available. If this is not possible for you, you will need to adjust the trinity jelly-fish memory parameters to a memory size your machine can allocate (<code class="docutils literal notranslate"><span class="pre">-JM</span> <span class="pre">[Memory]</span></code>).</p>
+<p><strong>ViralMine</strong> is designed to be run from the command line environment, an uses a combination of Bash and python.</p>
+<p>Because of the large RAM requirements of component programs for this pipeline (TRINITY’s Inchworm) it is <em>highly</em> recommended that <em>ViralMine</em> be installed on a compute cluster or a machine with at least 30-40GB of RAM available. If this is not possible for you, you will need to adjust the trinity maximum memory parameters to a memory size your machine can allocate (<code class="docutils literal notranslate"><span class="pre">--max_memory</span> <span class="pre">[Gb]</span></code>).</p>
 <p>To install and set up <strong>ViralMine</strong>, from the command line:</p>
 <ol class="arabic">
 <li><p>Navigate to the directory where you want to install the pipeline</p></li>
@@ -71,8 +72,9 @@
 <li><p>BLAST &gt;= 2.6.2 (recommend latest version)</p></li>
 <li><p>python &gt;=3.6.x (recommend latest version)</p></li>
 <li><p>cd-hit &gt;=4.6.x (recommend latest version)</p></li>
-<li><p>TRINITY (<a class="reference external" href="https://github.com/trinityrnaseq/trinityrnaseq/wiki">https://github.com/trinityrnaseq/trinityrnaseq/wiki</a>)</p></li>
+<li><p>TRINITY (require 2.8.x or later; <a class="reference external" href="https://github.com/trinityrnaseq/trinityrnaseq/wiki">https://github.com/trinityrnaseq/trinityrnaseq/wiki</a>)</p></li>
 </ul>
+<p>Finally, <em>before running the pipeline the first time</em>, you will need to adjust the <code class="docutils literal notranslate"><span class="pre">vm_loc</span></code> parameter in the <code class="docutils literal notranslate"><span class="pre">parameters.txt</span></code> file to the location where the <strong>ViralMine</strong> git repository has been cloned you your machine. This will allow the script to find the appropriate files required to run the pipeline.</p>
 </div>
 </div>
 <div class="section" id="running-viralmine">
@@ -80,39 +82,41 @@
 <div class="section" id="setup-alignment">
 <h2>Setup: Alignment<a class="headerlink" href="#setup-alignment" title="Permalink to this headline">¶</a></h2>
 <p>Prior to running <strong>ViralMine</strong>, users will need to generate the aligned and unaligned read files for samples they wish to process. There is no specific aligner requirement, but STAR has been the validated aligner of choice for RNA-Seq reads, and BWA for DNA-Seq reads. Check your aligner of choice’s manual to determine what parameter flag must be set to generate <em>unmapped reads</em>.</p>
-<p><strong>ViralMine</strong> does not require any files other than the Unmapped Reads file(s) from the aligner output.</p>
+<p><strong>ViralMine</strong> does not require any sequencing files other than the Unmapped Reads file(s) from the aligner output.</p>
 </div>
 <div class="section" id="setup-blast-db">
 <h2>Setup: BLAST db<a class="headerlink" href="#setup-blast-db" title="Permalink to this headline">¶</a></h2>
 <p><strong>ViralMine</strong> requires the user to generate a BLAST nucleotide database of viral reference sequences before samples can be processed. This can be done by using a fasta file of collected sequences and the command line BLAST tools’ <code class="docutils literal notranslate"><span class="pre">makeblastdb</span></code> command (see the BLAST manual here for more information: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/books/NBK279690/">https://www.ncbi.nlm.nih.gov/books/NBK279690/</a>). This is handled in the first step of the pipeline, but if the user already has a BLAST database compiled, they can skip this step using the <code class="docutils literal notranslate"><span class="pre">Exisiting_Blastdb</span></code> flag.</p>
-<p>If you are mining HBV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes <cite>A, B, C, D, F,</cite> and <cite>G</cite> from the HBVdb reference (<a class="reference external" href="https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex">https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex</a>) and included in the <strong>ViralMine</strong> download (see the <code class="docutils literal notranslate"><span class="pre">HBV_Ref_dbs/</span></code> directory). The script defualt is to pointed to this location.</p>
+<p>If you are mining HBV or HPV viral sequences, a nucleotide reference database has already been compiled for HBV genotypes <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">B,</span> <span class="pre">C,</span> <span class="pre">D,</span> <span class="pre">F,</span></code> and <code class="docutils literal notranslate"><span class="pre">G</span></code> from the HBVdb reference (<a class="reference external" href="https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex">https://hbvdb.ibcp.fr/HBVdb/HBVdbIndex</a>) and included in the <strong>ViralMine</strong> download (see the <code class="docutils literal notranslate"><span class="pre">HBV_Ref_dbs/</span></code> directory). The script defualt is to pointed to this location.</p>
 <p>If you are mining HPV viral reads, a nucleotide reference database is also available (<code class="docutils literal notranslate"><span class="pre">HPV_Ref_dbs/</span></code>) that includes the 15 oncogenic genotypes associated with the vast majority of cervical cancers (<em>Castellsague, X. Gynecol Oncol. 2008</em>). Genome reference sequences for these genotypes were compiled from the most recent published sequence by RefSeq.</p>
 </div>
 <div class="section" id="setup-viralmine-parameter-configuration">
 <h2>Setup: ViralMine parameter configuration:<a class="headerlink" href="#setup-viralmine-parameter-configuration" title="Permalink to this headline">¶</a></h2>
-<p><strong>ViralMine is currently configured to run on one single or paired-end RNA/DNA sample at a time</strong>. Parameters are specified in the opening block of the <code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span></code> script, seen below:</p>
+<p><strong>ViralMine is currently configured to run on one single or paired-end RNA/DNA sample at a time</strong>. Parameters are specified in the <code class="docutils literal notranslate"><span class="pre">parameters.txt</span></code> file, that must be passed as the first variable when running the script. The parameters are listed below:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Dir</span><span class="o">=</span><span class="s2">&quot;path/to/unmapped_reads.out/&quot;</span>
-<span class="n">seq_type</span><span class="o">=</span><span class="s2">&quot;paired&quot;</span>
-<span class="n">Exisiting_Blastdb</span><span class="o">=</span><span class="mi">1</span>
-<span class="n">Viral_Genome</span><span class="o">=</span><span class="s2">&quot;path/to/input.genome.fa&quot;</span>
-<span class="n">viral_db</span><span class="o">=</span><span class="s2">&quot;path/to/viral/blastn_db/viral.db&quot;</span>
-<span class="n">contig_size_filter</span><span class="o">=</span><span class="mi">200</span>
-<span class="n">gt_virus</span><span class="o">=</span><span class="s2">&quot;hbv&quot;</span>
 <span class="n">sample_id</span><span class="o">=</span><span class="s2">&quot;sample_name&quot;</span>
+<span class="n">seq_type</span><span class="o">=</span><span class="s2">&quot;paired&quot;</span>
+<span class="n">Exisiting_Blastdb</span><span class="o">=</span><span class="s2">&quot;Yes&quot;</span>
+<span class="n">Viral_Genome</span><span class="o">=</span><span class="s2">&quot;path/to/input.genome.fa&quot;</span>
+<span class="n">viral_db</span><span class="o">=</span><span class="s2">&quot;/path/to/ViralMine/HBV_Ref_dbs/HBVdb/HBVdb_all_gt&quot;</span>
+<span class="n">contig_size_filter</span><span class="o">=</span><span class="mi">100</span>
 <span class="n">threshold</span><span class="o">=</span><span class="mf">0.1</span>
+<span class="n">gt_virus</span><span class="o">=</span><span class="s2">&quot;hbv&quot;</span>
+<span class="n">gene_exp</span><span class="o">=</span><span class="s2">&quot;No&quot;</span>
+<span class="n">viral_gene_db</span><span class="o">=</span><span class="s2">&quot;/path/to/ViralMine/HBV_Ref_dbs/HBV_gene_db/GenesHBV&quot;</span>
 </pre></div>
 </div>
 <p>A full list of the parameters and their options is discussed in the table below (see <strong>Parameter Explanations</strong>).</p>
-<p>It is recommended that for <em>each sample</em> that you run <strong>ViralMine</strong> with, you make a uniquely named copy of the <code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span></code> executable. For example, if you have samples <code class="docutils literal notranslate"><span class="pre">Sample_1</span></code> and <code class="docutils literal notranslate"><span class="pre">Sample_2</span></code>, you would create <code class="docutils literal notranslate"><span class="pre">ViralMine_S1.sh</span></code> and <code class="docutils literal notranslate"><span class="pre">ViralMine_S2.sh</span></code> in the <code class="docutils literal notranslate"><span class="pre">~/ViralMine</span></code> directory. You do <strong>NOT</strong> need to copy any of the files in <code class="docutils literal notranslate"><span class="pre">scripts/</span></code>.</p>
+<p>It is recommended that for <em>each sample</em> that you run <strong>ViralMine</strong> with, you make a uniquely named copy of the <code class="docutils literal notranslate"><span class="pre">parameters.txt</span></code> file. For example, if you have samples <code class="docutils literal notranslate"><span class="pre">Sample_1</span></code> and <code class="docutils literal notranslate"><span class="pre">Sample_5</span></code>, you would create <code class="docutils literal notranslate"><span class="pre">parameters_S1.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">parameters_S5.txt</span></code> in your working directory. You do <strong>NOT</strong> need to copy any of the files in <code class="docutils literal notranslate"><span class="pre">scripts/</span></code>.</p>
 </div>
 <div class="section" id="id1">
 <h2>Running ViralMine<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>Once you have generated your unmapped read files, built your viral reference database, and specified your input files and reference directories in the <code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span></code> parameters, you can execute the script for single-end samples using:</p>
-<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">Unmapped.Reads.out</span></code></p>
+<p>Once you have generated your unmapped read files, built your viral reference database, and specified your input files and reference directories in the <code class="docutils literal notranslate"><span class="pre">parameters.txt</span></code> file, you can execute the script for single-end samples using:</p>
+<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">parameters.txt</span> <span class="pre">[Unmapped.Reads.out]</span> <span class="pre">&gt;</span> <span class="pre">VM_log.out</span></code></p>
 <p>or for paired-end samples using</p>
-<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">Unmapped.Reads.out1</span> <span class="pre">Unmapped.Reads.out2</span></code></p>
-<p>Script processes and error messages are configured to be printed to standard out. If you would like to capture these in a log file, run:</p>
-<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">Unmapped.Reads.out</span> <span class="pre">&gt;</span> <span class="pre">{path/to/log_dir}/log.out</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">parameters.txt</span> <span class="pre">[Unmapped.Reads.out1]</span> <span class="pre">[Unmapped.Reads.out2]</span> <span class="pre">&gt;</span> <span class="pre">VM_log.out</span></code></p>
+<p>Script processes and error messages are configured to be printed to standard out, which will be captured in the specified log file. For verbose output to standard out, execute the command without the log file specification:</p>
+<p><code class="docutils literal notranslate"><span class="pre">ViralMine.sh</span> <span class="pre">parameters.txt</span> <span class="pre">[Unmapped.Reads.out]</span></code></p>
 </div>
 </div>
 <div class="section" id="parameter-explanations">
@@ -121,41 +125,48 @@
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Dir</span></code></dt>
 <dd class="field-odd"><p>Directory location of the unmapped reads file(s), as well as the location where the output files will be published. It is highly recommended that the absolute path be used.</p>
 </dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">seq_type</span></code></dt>
-<dd class="field-even"><p>Either “paired” (default) or “single”. Flag used to specify whether paired or single-ended sequencing was used, and to specify how many unmapped reads files the script should expect.</p>
-</dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Exisiting_Blastdb</span></code></dt>
-<dd class="field-odd"><p>Either “No” or “Yes”. This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is Yes, as the default HBV Reference database has been included in the ViralMine download.</p>
-</dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Viral_Genome</span></code></dt>
-<dd class="field-even"><p>Filepath to fasta containing viral reference sequences to build a new nucleotide BLAST database. Will be ignored it “Exisiting_Blastdb” is 1.</p>
-</dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">viral_db</span></code></dt>
-<dd class="field-odd"><p>Path to either existing viral reference BLASTdb OR path to where the viral database should be created.</p>
-</dd>
-<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">contig_size_filter</span></code></dt>
-<dd class="field-even"><p>Integer value, specifying the smallest contig size to keep when aligning agains the viral references. Default size is 100bp (what we have found to work well for HBV).</p>
-</dd>
-<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">gt_virus</span></code></dt>
-<dd class="field-odd"><p>Flag for running contig genotyping, either “hbv”,”hpv”, or “none”. <strong>Note</strong> this should ONLY be run if you are trying to genotype HBV or HPV contigs with the included reference databases! This will most likely fail or provide useless results for other viruses. Default is “hbv”, as the expected default reference database is HBV.</p>
-</dd>
 <dt class="field-even"><code class="docutils literal notranslate"><span class="pre">sample_id</span></code></dt>
-<dd class="field-even"><p>Sample name or sample ID. This will be used to name the genotyping outfile.</p>
+<dd class="field-even"><p>Sample name or sample ID. This will be used to name the outfiles. Please note that the “_” character is restricted and must not be used.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">seq_type</span></code></dt>
+<dd class="field-odd"><p>Either “paired” (default) or “single”. Flag used to specify whether paired or single-ended sequencing was used, and to specify how many unmapped reads files the script should expect.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">Exisiting_Blastdb</span></code></dt>
+<dd class="field-even"><p>Either “No” or “Yes”. This indicates whether or not a new nucleotide BLASTdb needs to be built from the passed in viral reference fasta. Default is Yes, as the default HBV Reference database has been included in the ViralMine download.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">Viral_Genome</span></code></dt>
+<dd class="field-odd"><p>Filepath to fasta containing viral reference sequences to build a new nucleotide BLAST database. Will be ignored it “Exisiting_Blastdb” is 1.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">viral_db</span></code></dt>
+<dd class="field-even"><p>Path to either existing viral reference BLASTdb OR path to where the viral database should be created.</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">contig_size_filter</span></code></dt>
+<dd class="field-odd"><p>Integer value, specifying the smallest contig size to keep when aligning agains the viral references. Default size is 100bp (what we have found to work well for HBV).</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">gt_virus</span></code></dt>
+<dd class="field-even"><p>Flag for running contig genotyping, either “hbv”,”hpv”, or “none”. <strong>Note</strong> this should ONLY be run if you are trying to genotype HBV or HPV contigs with the included reference databases! This will most likely fail or provide useless results for other viruses. Default is “hbv”, as the expected default reference database is HBV.</p>
 </dd>
 <dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">threshold</span></code></dt>
 <dd class="field-odd"><p>Fraction of the total viral bitscore for a patient that must be exceeded for a given genotype of HBV/HPV to be included in the list of coinfections in the coinfection output file. The default is 0.1 or 10% of the bitscore. Will only be used if Genotyping is attempted.</p>
+</dd>
+<dt class="field-even"><code class="docutils literal notranslate"><span class="pre">gene_exp</span></code></dt>
+<dd class="field-even"><p>Flag to indicate whether or not to generate viral gene level expression count matrix for HPV or HBV infected samples. Either “No” or “Yes” (default is “No”)</p>
+</dd>
+<dt class="field-odd"><code class="docutils literal notranslate"><span class="pre">viral_gene_db</span></code></dt>
+<dd class="field-odd"><p>Path to the HBV or HPV viral gene nucleotide BLAST reference database. <em>NOTE</em>: this MUST be either the HPV or HBV reference database provided in the ViralMine download to function correctly. HBV reference db is “HBV_Ref_dbs/HBV_gene_db/GenesHBV” and HPV is “HPV_Ref_dbs/HPV_gene_db/genesHPV”.</p>
 </dd>
 </dl>
 </div>
 <div class="section" id="output-files">
 <h1>Output Files<a class="headerlink" href="#output-files" title="Permalink to this headline">¶</a></h1>
-<p>Each step of the pipeline will produce several output files, and depending on the size of your unmapped read fastqs, you should expect to use 5-15GB of storage. Key output files are summarized below:</p>
+<p>Output files will be saved in the same directory as the input directory where your unmapped reads files are located. Each step of the pipeline will produce several output files, and depending on the size of your unmapped read fastqs, you should expect to use 5-10GB of storage. Key output files are summarized below:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">viral_matched_contigs.fa</span></code>: A fasta file containing all the inchworm contigs that matched viral reference sequences</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">viral_alignment.tsv</span></code>: The BLAST output with scores of which contigs matched which viral sequences. This can be used to identify which contigs matched to which viral species/viral reference.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[sample_id]_scores.txt</span></code>: Will only be generated if the HBV or HPV genotyping flag has been selected. This will contain the bitscores by genotype for the BLAST window alignment, and can be used to genotype tumor viral infection of a patient, or characterize a mixed genotype.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[sample_id]_viral_GT.tsv</span></code>: Will only be generated if the genotyping flag is on for HPV or HBV. This will contain the calculated dominant genotype for the tumor across patient contigs by summation of all genotype specific bitscores from across the window BLAST.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[sample_id]_viral_Coinf_GT.tsv</span></code>: Will only be generated if the HBV/HPV genotyping flag has been selected. This will contain a comma separated list of the viral genotypes that the patient’s tumor is coinfected with. It is NOT ordered. If only one genotype is listed for a patient, this indicates that only one genotype passed the coinfection threshold.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[sample_id]_ReadsPerViralGene.tab</span></code>: Will only be generated if the <cite>gene_exp flag</cite> is “Yes”, and the HBV/HPV genotyping flag has been selected. This will calculate, based on the recovered viral contigs, the number of reads supporting HBV/HPV genes for the patient.</p></li>
 </ol>
 </div>
 <div class="section" id="help">
